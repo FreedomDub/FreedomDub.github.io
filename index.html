@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreedomDub - Система загрузки видео</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --error: #d63031;
+            --admin: #e84393;
+            --viewer: #0984e3;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .badge-admin {
+            background-color: var(--admin);
+        }
+        
+        .badge-viewer {
+            background-color: var(--viewer);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .project-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .project-image {
+            height: 180px;
+            background-color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            position: relative;
+        }
+        
+        .project-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .status-complete {
+            background-color: var(--success);
+        }
+        
+        .status-in-progress {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+        
+        .status-pending {
+            background-color: #636e72;
+        }
+        
+        .project-info {
+            padding: 1.5rem;
+        }
+        
+        .project-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .project-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #636e72;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 1rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #5649c0;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+        }
+        
+        .btn-secondary:hover {
+            background: #8c7ae6;
+        }
+        
+        .btn-admin {
+            background: var(--admin);
+        }
+        
+        .btn-admin:hover {
+            background: #d6308f;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #636e72;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--secondary);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            background: rgba(162, 155, 254, 0.1);
+        }
+        
+        .file-list {
+            margin-top: 1.5rem;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            background: #f1f2f6;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70%;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary);
+        }
+        
+        .action-btn.delete {
+            color: var(--error);
+        }
+        
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="error-message" style="display: none; position: fixed; top: 0; left: 0; width: 100%; background: red; color: white; padding: 10px; text-align: center; z-index: 2000;"></div>
+    
+    <header>
+        <div class="logo">FreedomDub</div>
+        <div id="user-menu">
+            <button id="login-btn" class="btn btn-secondary">Вход</button>
+        </div>
+    </header>
+    
+    <div class="container">
+        <h1>Проекты</h1>
+        <button id="add-project-btn" class="btn btn-admin" style="display: none;">Добавить проект</button>
+        
+        <div class="projects-grid" id="projects-container">
+            <!-- Проекты будут загружаться здесь -->
+        </div>
+    </div>
+    
+    <!-- Модальное окно для проекта -->
+    <div class="modal" id="project-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-project-title">Новый проект</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="project-modal-content">
+                <!-- Контент будет загружаться здесь -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для входа -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Вход в систему</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="login-form">
+                <div style="margin-bottom: 1rem;">
+                    <label for="login-email" style="display: block; margin-bottom: 0.5rem;">Email</label>
+                    <input type="email" id="login-email" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="login-password" style="display: block; margin-bottom: 0.5rem;">Пароль</label>
+                    <input type="password" id="login-password" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <button type="submit" class="btn">Войти</button>
+            </form>
+        </div>
+    </div>
+    
+    <footer>
+        &copy; <span id="current-year"></span> FreedomDub Studio. Все права защищены.
+    </footer>
+    
+    <script>
+        // Проверка поддержки API
+        if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+            document.getElementById('error-message').textContent = 
+                'Ваш браузер не поддерживает все необходимые функции для работы этого приложения. Пожалуйста, обновите браузер.';
+            document.getElementById('error-message').style.display = 'block';
+        }
+
+        // Типы пользователей и их права
+        const USER_ROLES = {
+            GUEST: 'guest',
+            VIEWER: 'viewer',
+            ADMIN: 'admin'
+        };
+        
+        // Данные пользователей
+        const users = [
+            { 
+                email: 'admin@freedomdub.com', 
+                password: 'admin123', 
+                role: USER_ROLES.ADMIN, 
+                name: 'Администратор' 
+            },
+            { 
+                email: 'editor@freedomdub.com', 
+                password: 'editor123', 
+                role: USER_ROLES.VIEWER, 
+                name: 'Редактор' 
+            }
+        ];
+
+        // Имитация базы данных проектов
+        let projects = JSON.parse(localStorage.getItem('freedomdub-projects')) || [
+            {
+                id: 1,
+                title: "Аниме 'Великий воин'",
+                description: "Дубляж аниме сериала для российского рынка",
+                episodes: [
+                    { id: 1, name: "Серия 1", files: [], status: "завершено" },
+                    { id: 2, name: "Серия 2", files: [], status: "в работе" }
+                ],
+                status: "в работе",
+                created: new Date().toISOString().split('T')[0],
+                updated: new Date().toISOString().split('T')[0]
+            }
+        ];
+
+        // Сохранение в localStorage
+        function saveProjects() {
+            localStorage.setItem('freedomdub-projects', JSON.stringify(projects));
+        }
+
+        // Текущий пользователь
+        let currentUser = JSON.parse(localStorage.getItem('freedomdub-user')) || {
+            role: USER_ROLES.GUEST
+        };
+
+        // DOM элементы
+        const projectsContainer = document.getElementById('projects-container');
+        const projectModal = document.getElementById('project-modal');
+        const loginModal = document.getElementById('login-modal');
+        const modalTitle = document.getElementById('modal-project-title');
+        const modalContent = document.getElementById('project-modal-content');
+        const loginForm = document.getElementById('login-form');
+        const userMenu = document.getElementById('user-menu');
+        const addProjectBtn = document.getElementById('add-project-btn');
+        const closeModalButtons = document.querySelectorAll('.close-modal');
+        const currentYearSpan = document.getElementById('current-year');
+
+        // Установка текущего года в футере
+        currentYearSpan.textContent = new Date().getFullYear();
+
+        // Проверка прав пользователя
+        function checkPermission(requiredRole) {
+            const roleHierarchy = {
+                [USER_ROLES.GUEST]: 0,
+                [USER_ROLES.VIEWER]: 1,
+                [USER_ROLES.ADMIN]: 2
+            };
+            
+            return roleHierarchy[currentUser.role] >= roleHierarchy[requiredRole];
+        }
+
+        // Обновление интерфейса в зависимости от роли
+        function updateUI() {
+            // Кнопка добавления проекта только для админов
+            addProjectBtn.style.display = checkPermission(USER_ROLES.ADMIN) ? 'block' : 'none';
+            
+            // Обновление меню пользователя
+            if (currentUser.role !== USER_ROLES.GUEST) {
+                const badgeClass = currentUser.role === USER_ROLES.ADMIN ? 'badge-admin' : 'badge-viewer';
+                userMenu.innerHTML = `
+                    <div class="user-info">
+                        <span>${currentUser.name}</span>
+                        <span class="user-badge ${badgeClass}">${currentUser.role === USER_ROLES.ADMIN ? 'Админ' : 'Редактор'}</span>
+                        <button id="logout-btn" class="btn btn-secondary">Выйти</button>
+                    </div>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', logout);
+            } else {
+                userMenu.innerHTML = '<button id="login-btn" class="btn btn-secondary">Вход</button>';
+                document.getElementById('login-btn').addEventListener('click', () => {
+                    loginModal.style.display = 'flex';
+                });
+            }
+            
+            renderProjects();
+        }
+
+        // Вход в систему
+        function login(email, password) {
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('freedomdub-user', JSON.stringify(user));
+                updateUI();
+                loginModal.style.display = 'none';
+                return true;
+            }
+            return false;
+        }
+
+        // Выход из системы
+        function logout() {
+            currentUser = { role: USER_ROLES.GUEST };
+            localStorage.removeItem('freedomdub-user');
+            updateUI();
+        }
+
+        // Функция для рендеринга проектов
+        function renderProjects() {
+            projectsContainer.innerHTML = '';
+            
+            projects.forEach(project => {
+                const projectCard = document.createElement('div');
+                projectCard.className = 'project-card';
+                projectCard.dataset.id = project.id;
+                
+                const statusClass = 
+                    project.status === 'завершено' ? 'status-complete' :
+                    project.status === 'в работе' ? 'status-in-progress' : 'status-pending';
+                    
+                const completedEpisodes = project.episodes.filter(ep => ep.status === 'завершено').length;
+                
+                projectCard.innerHTML = `
+                    <div class="project-image">
+                        <span>${project.title.charAt(0)}</span>
+                        <span class="project-status ${statusClass}">${project.status}</span>
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">${project.title}</h3>
+                        <p style="margin-bottom: 0.5rem; font-size: 0.9rem; color: #636e72;">${project.description}</p>
+                        <div class="project-meta">
+                            <span>Серий: ${completedEpisodes}/${project.episodes.length}</span>
+                            <span>Обновлено: ${formatDate(project.updated)}</span>
+                        </div>
+                        <button class="btn btn-secondary" data-action="view">Просмотр</button>
+                        ${checkPermission(USER_ROLES.VIEWER) ? 
+                            `<button class="btn" data-action="edit" style="margin-left: 0.5rem;">Редактировать</button>` : ''}
+                        ${checkPermission(USER_ROLES.ADMIN) ? 
+                            `<button class="btn btn-admin" data-action="delete" style="margin-left: 0.5rem;">Удалить</button>` : ''}
+                    </div>
+                `;
+                
+                projectsContainer.appendChild(projectCard);
+            });
+            
+            // Добавляем обработчики событий для кнопок
+            document.querySelectorAll('[data-action="view"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const projectId = parseInt(this.closest('.project-card').dataset.id);
+                    openProjectModal(projectId, 'view');
+                });
+            });
+            
+            document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const projectId = parseInt(this.closest('.project-card').dataset.id);
+                    openProjectModal(projectId, 'edit');
+                });
+            });
+            
+            document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!checkPermission(USER_ROLES.ADMIN)) {
+                        alert('Только администраторы могут удалять проекты');
+                        return;
+                    }
+                    
+                    const projectId = parseInt(this.closest('.project-card').dataset.id);
+                    if (confirm('Вы уверены, что хотите удалить этот проект?')) {
+                        projects = projects.filter(p => p.id !== projectId);
+                        saveProjects();
+                        renderProjects();
+                    }
+                });
+            });
+        }
+
+        // Функция для открытия модального окна проекта
+        function openProjectModal(projectId, mode) {
+            const project = projects.find(p => p.id === projectId);
+            
+            if (!project) return;
+            
+            modalTitle.textContent = project.title;
+            
+            if (mode === 'view') {
+                modalContent.innerHTML = `
+                    <p><strong>Описание:</strong> ${project.description}</p>
+                    <p><strong>Статус:</strong> <span class="${project.status === 'завершено' ? 'status-complete' : 
+                        project.status === 'в работе' ? 'status-in-progress' : 'status-pending'}">${project.status}</span></p>
+                    <p><strong>Создан:</strong> ${formatDate(project.created)}</p>
+                    <p><strong>Обновлен:</strong> ${formatDate(project.updated)}</p>
+                    
+                    <h3 style="margin: 1.5rem 0 1rem;">Серии</h3>
+                    <div id="episodes-list">
+                        ${project.episodes.map(episode => `
+                            <div style="margin-bottom: 1rem; padding: 1rem; background: #f1f2f6; border-radius: 4px;">
+                                <h4>${episode.name}</h4>
+                                <p><strong>Статус:</strong> <span class="${episode.status === 'завершено' ? 'status-complete' : 
+                                    episode.status === 'в работе' ? 'status-in-progress' : 'status-pending'}">${episode.status}</span></p>
+                                ${episode.files.length > 0 ? `
+                                    <p><strong>Файлы:</strong></p>
+                                    <ul style="margin-left: 1.5rem;">
+                                        ${episode.files.map(file => `<li>${file}</li>`).join('')}
+                                    </ul>
+                                ` : '<p>Нет загруженных файлов</p>'}
+                                ${checkPermission(USER_ROLES.VIEWER) ? `
+                                    <button class="btn" data-action="edit-episode" data-episode-id="${episode.id}" 
+                                        style="margin-top: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                                        Редактировать серию
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${checkPermission(USER_ROLES.VIEWER) ? `
+                        <div style="margin-top: 1.5rem;">
+                            <button class="btn" id="edit-project-btn">Редактировать проект</button>
+                        </div>
+                    ` : ''}
+                `;
+                
+                if (checkPermission(USER_ROLES.VIEWER)) {
+                    document.getElementById('edit-project-btn').addEventListener('click', () => {
+                        openProjectModal(projectId, 'edit');
+                    });
+                    
+                    document.querySelectorAll('[data-action="edit-episode"]').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const episodeId = parseInt(this.dataset.episodeId);
+                            openEpisodeEditForm(project, episodeId);
+                        });
+                    });
+                }
+            } else if (mode === 'edit') {
+                if (!checkPermission(USER_ROLES.VIEWER)) {
+                    alert('Недостаточно прав для редактирования');
+                    return;
+                }
+                
+                modalContent.innerHTML = `
+                    <form id="project-form">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="project-title" style="display: block; margin-bottom: 0.5rem;">Название проекта</label>
+                            <input type="text" id="project-title" value="${project.title}" required 
+                                style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                                ${!checkPermission(USER_ROLES.ADMIN) ? 'readonly' : ''}>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="project-desc" style="display: block; margin-bottom: 0.5rem;">Описание</label>
+                            <textarea id="project-desc" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; min-height: 100px;">${project.description}</textarea>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="project-status" style="display: block; margin-bottom: 0.5rem;">Статус проекта</label>
+                            <select id="project-status" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="в работе" ${project.status === 'в работе' ? 'selected' : ''}>В работе</option>
+                                <option value="завершено" ${project.status === 'завершено' ? 'selected' : ''}>Завершено</option>
+                                <option value="ожидает" ${project.status === 'ожидает' ? 'selected' : ''}>Ожидает</option>
+                            </select>
+                        </div>
+                        
+                        <h3 style="margin: 1.5rem 0 1rem;">Серии</h3>
+                        <div id="episodes-list">
+                            ${project.episodes.map((episode, index) => `
+                                <div style="margin-bottom: 1rem; padding: 1rem; background: #f1f2f6; border-radius: 4px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <h4>Серия ${index + 1}</h4>
+                                        ${checkPermission(USER_ROLES.ADMIN) ? `
+                                            <button type="button" class="action-btn delete" data-episode-id="${episode.id}">Удалить</button>
+                                        ` : ''}
+                                    </div>
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <label for="episode-name-${episode.id}" style="display: block; margin-bottom: 0.3rem;">Название серии</label>
+                                        <input type="text" id="episode-name-${episode.id}" value="${episode.name}" 
+                                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                    </div>
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <label for="episode-status-${episode.id}" style="display: block; margin-bottom: 0.3rem;">Статус</label>
+                                        <select id="episode-status-${episode.id}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                            <option value="в работе" ${episode.status === 'в работе' ? 'selected' : ''}>В работе</option>
+                                            <option value="завершено" ${episode.status === 'завершено' ? 'selected' : ''}>Завершено</option>
+                                            <option value="ожидает" ${episode.status === 'ожидает' ? 'selected' : ''}>Ожидает</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="upload-area" id="upload-area-${episode.id}" data-episode-id="${episode.id}">
+                                        <p>Перетащите файлы сюда или кликните для загрузки</p>
+                                        <input type="file" id="file-input-${episode.id}" style="display: none;" multiple>
+                                    </div>
+                                    
+                                    <div class="file-list">
+                                        ${episode.files.map(file => `
+                                            <div class="file-item">
+                                                <span class="file-name">${file}</span>
+                                                <div class="file-actions">
+                                                    <button type="button" class="action-btn delete" data-file="${file}" data-episode-id="${episode.id}">Удалить</button>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        ${checkPermission(USER_ROLES.ADMIN) ? `
+                            <button type="button" class="btn btn-secondary" id="add-episode-btn" style="margin-bottom: 1.5rem;">Добавить серию</button>
+                        ` : ''}
+                        
+                        <div style="display: flex; justify-content: space-between;">
+                            <button type="button" class="btn btn-secondary" id="cancel-project-btn">Отмена</button>
+                            <button type="submit" class="btn">Сохранить</button>
+                        </div>
+                    </form>
+                `;
+                
+                // Добавляем обработчики событий для загрузки файлов
+                project.episodes.forEach(episode => {
+                    const uploadArea = document.getElementById(`upload-area-${episode.id}`);
+                    const fileInput = document.getElementById(`file-input-${episode.id}`);
+                    
+                    uploadArea.addEventListener('click', () => fileInput.click());
+                    
+                    fileInput.addEventListener('change', (e) => {
+                        const files = Array.from(e.target.files);
+                        if (files.length > 0) {
+                            files.forEach(file => {
+                                const episode = project.episodes.find(ep => ep.id === parseInt(uploadArea.dataset.episodeId));
+                                if (episode && !episode.files.includes(file.name)) {
+                                    episode.files.push(file.name);
+                                    saveProjects();
+                                }
+                            });
+                            openProjectModal(projectId, 'edit');
+                        }
+                    });
+                    
+                    // Обработчики для удаления файлов
+                    document.querySelectorAll(`[data-episode-id="${episode.id}"].delete`).forEach(btn => {
+                        if (btn.dataset.file) {
+                            btn.addEventListener('click', () => {
+                                const episode = project.episodes.find(ep => ep.id === parseInt(btn.dataset.episodeId));
+                                if (episode) {
+                                    episode.files = episode.files.filter(f => f !== btn.dataset.file);
+                                    saveProjects();
+                                    openProjectModal(projectId, 'edit');
+                                }
+                            });
+                        } else {
+                            // Удаление серии
+                            btn.addEventListener('click', () => {
+                                project.episodes = project.episodes.filter(ep => ep.id !== parseInt(btn.dataset.episodeId));
+                                saveProjects();
+                                openProjectModal(projectId, 'edit');
+                            });
+                        }
+                    });
+                });
+                
+                // Добавление новой серии (только для админов)
+                if (checkPermission(USER_ROLES.ADMIN)) {
+                    document.getElementById('add-episode-btn').addEventListener('click', () => {
+                        const newEpisodeId = project.episodes.length > 0 ? 
+                            Math.max(...project.episodes.map(ep => ep.id)) + 1 : 1;
+                        
+                        project.episodes.push({
+                            id: newEpisodeId,
+                            name: `Серия ${project.episodes.length + 1}`,
+                            files: [],
+                            status: 'ожидает'
+                        });
+                        saveProjects();
+                        openProjectModal(projectId, 'edit');
+                    });
+                }
+                
+                // Отмена редактирования
+                document.getElementById('cancel-project-btn').addEventListener('click', () => {
+                    projectModal.style.display = 'none';
+                });
+                
+                // Сохранение проекта
+                document.getElementById('project-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    
+                    // Обновляем данные проекта
+                    if (checkPermission(USER_ROLES.ADMIN)) {
+                        project.title = document.getElementById('project-title').value;
+                    }
+                    project.description = document.getElementById('project-desc').value;
+                    project.status = document.getElementById('project-status').value;
+                    project.updated = new Date().toISOString().split('T')[0];
+                    
+                    // Обновляем данные серий
+                    project.episodes.forEach(episode => {
+                        episode.name = document.getElementById(`episode-name-${episode.id}`).value;
+                        episode.status = document.getElementById(`episode-status-${episode.id}`).value;
+                    });
+                    
+                    saveProjects();
+                    
+                    // Закрываем модальное окно и обновляем список проектов
+                    projectModal.style.display = 'none';
+                    renderProjects();
+                });
+            }
+            
+            projectModal.style.display = 'flex';
+        }
+
+        // Форма редактирования отдельной серии
+        function openEpisodeEditForm(project, episodeId) {
+            const episode = project.episodes.find(ep => ep.id === episodeId);
+            if (!episode) return;
+            
+            modalTitle.textContent = `${project.title} - ${episode.name}`;
+            
+            modalContent.innerHTML = `
+                <form id="episode-form">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="episode-name" style="display: block; margin-bottom: 0.5rem;">Название серии</label>
+                        <input type="text" id="episode-name" value="${episode.name}" required 
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="episode-status" style="display: block; margin-bottom: 0.5rem;">Статус</label>
+                        <select id="episode-status" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="в работе" ${episode.status === 'в работе' ? 'selected' : ''}>В работе</option>
+                            <option value="завершено" ${episode.status === 'завершено' ? 'selected' : ''}>Завершено</option>
+                            <option value="ожидает" ${episode.status === 'ожидает' ? 'selected' : ''}>Ожидает</option>
+                        </select>
+                    </div>
+                    
+                    <div class="upload-area" id="upload-area">
+                        <p>Перетащите файлы сюда или кликните для загрузки</p>
+                        <input type="file" id="file-input" style="display: none;" multiple>
+                    </div>
+                    
+                    <div class="file-list">
+                        ${episode.files.map(file => `
+                            <div class="file-item">
+                                <span class="file-name">${file}</span>
+                                <div class="file-actions">
+                                    <button type="button" class="action-btn delete" data-file="${file}">Удалить</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+                        <button type="button" class="btn btn-secondary" id="cancel-episode-btn">Отмена</button>
+                        <button type="submit" class="btn">Сохранить</button>
+                    </div>
+                </form>
+            `;
+            
+            // Загрузка файлов
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    files.forEach(file => {
+                        if (!episode.files.includes(file.name)) {
+                            episode.files.push(file.name);
+                            saveProjects();
+                        }
+                    });
+                    openEpisodeEditForm(project, episodeId);
+                }
+            });
+            
+            // Удаление файлов
+            document.querySelectorAll('.file-actions .delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    episode.files = episode.files.filter(f => f !== this.dataset.file);
+                    saveProjects();
+                    openEpisodeEditForm(project, episodeId);
+                });
+            });
+            
+            // Отмена
+            document.getElementById('cancel-episode-btn').addEventListener('click', () => {
+                projectModal.style.display = 'none';
+            });
+            
+            // Сохранение
+            document.getElementById('episode-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                episode.name = document.getElementById('episode-name').value;
+                episode.status = document.getElementById('episode-status').value;
+                saveProjects();
+                
+                projectModal.style.display = 'none';
+                openProjectModal(project.id, 'view');
+            });
+            
+            projectModal.style.display = 'flex';
+        }
+
+        // Функция для форматирования даты
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('ru-RU', options);
+        }
+
+        // Обработчики событий для модальных окон
+        closeModalButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                projectModal.style.display = 'none';
+                loginModal.style.display = 'none';
+            });
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === projectModal) projectModal.style.display = 'none';
+            if (e.target === loginModal) loginModal.style.display = 'none';
+        });
+
+        // Обработчик формы входа
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!login(email, password)) {
+                alert('Неверные учетные данные. Попробуйте admin@freedomdub.com/admin123 или editor@freedomdub.com/editor123');
+            }
+        });
+
+        // Обработчик для добавления нового проекта
+        addProjectBtn.addEventListener('click', () => {
+            const newProjectId = projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1;
+            
+            const newProject = {
+                id: newProjectId,
+                title: `Новый проект ${newProjectId}`,
+                description: 'Описание нового проекта',
+                episodes: [
+                    { id: 1, name: 'Серия 1', files: [], status: 'ожидает' }
+                ],
+                status: 'ожидает',
+                created: new Date().toISOString().split('T')[0],
+                updated: new Date().toISOString().split('T')[0]
+            };
+            
+            projects.push(newProject);
+            saveProjects();
+            openProjectModal(newProjectId, 'edit');
+        });
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+        });
+    </script>
+</body>
+  </html>
