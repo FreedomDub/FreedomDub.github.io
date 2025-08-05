@@ -15,6 +15,7 @@
             --error: #d63031;
             --admin: #e84393;
             --viewer: #0984e3;
+            --guest: #636e72;
         }
         
         * {
@@ -56,6 +57,7 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: bold;
+            color: white;
         }
         
         .badge-admin {
@@ -64,6 +66,10 @@
         
         .badge-viewer {
             background-color: var(--viewer);
+        }
+        
+        .badge-guest {
+            background-color: var(--guest);
         }
         
         .container {
@@ -276,13 +282,68 @@
             margin-top: 2rem;
         }
         
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
+        /* Стили для команды */
+        .team-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .team-member {
+            text-align: center;
+            padding: 1rem;
+            background: #f1f2f6;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .member-role {
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .member-projects {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: #636e72;
+        }
+        
+        .edit-member-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary);
+            display: none;
+        }
+        
+        .team-member:hover .edit-member-btn {
+            display: block;
+        }
+        
+        /* Стили для описания серии */
+        .episode-description {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #636e72;
+            padding: 0.5rem;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        
         /* Стили для табов */
         .auth-tabs {
             display: flex;
@@ -308,6 +369,17 @@
         .auth-content.active {
             display: block;
         }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .team-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -323,9 +395,17 @@
     <div class="container">
         <h1>Проекты</h1>
         <button id="add-project-btn" class="btn btn-admin" style="display: none;">Добавить проект</button>
+        <button id="manage-team-btn" class="btn btn-admin" style="display: none; margin-left: 0.5rem;">Управление командой</button>
         
         <div class="projects-grid" id="projects-container">
             <!-- Проекты будут загружаться здесь -->
+        </div>
+        
+        <div class="team-section">
+            <h2>Наша команда</h2>
+            <div class="team-grid" id="team-container">
+                <!-- Команда будет загружаться здесь -->
+            </div>
         </div>
     </div>
     
@@ -337,6 +417,19 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div id="project-modal-content">
+                <!-- Контент будет загружаться здесь -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для управления командой -->
+    <div class="modal" id="team-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Управление командой</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="team-modal-content">
                 <!-- Контент будет загружаться здесь -->
             </div>
         </div>
@@ -437,6 +530,21 @@
             localStorage.setItem('freedomdub-users', JSON.stringify(users));
         }
 
+        // Данные команды
+        let teamMembers = JSON.parse(localStorage.getItem('freedomdub-team')) || [
+            { id: 1, name: 'Алексей Петров', role: 'Актёр озвучки', projects: ['Великий воин', 'Тёмный лес'] },
+            { id: 2, name: 'Мария Смирнова', role: 'Переводчик', projects: ['Великий воин', 'Город теней'] },
+            { id: 3, name: 'Дмитрий Иванов', role: 'Редактор', projects: ['Все проекты'] },
+            { id: 4, name: 'Ольга Кузнецова', role: 'Звукорежиссёр', projects: ['Великий воин', 'Морские приключения'] },
+            { id: 5, name: 'Иван Сидоров', role: 'Создатель сайта', projects: [] },
+            { id: 6, name: 'Екатерина Васильева', role: 'Администрация', projects: ['Все проекты'] }
+        ];
+
+        // Сохранение команды
+        function saveTeam() {
+            localStorage.setItem('freedomdub-team', JSON.stringify(teamMembers));
+        }
+
         // Имитация базы данных проектов
         let projects = JSON.parse(localStorage.getItem('freedomdub-projects')) || [
             {
@@ -444,8 +552,20 @@
                 title: "Аниме 'Великий воин'",
                 description: "Дубляж аниме сериала для российского рынка",
                 episodes: [
-                    { id: 1, name: "Серия 1", files: [], status: "завершено" },
-                    { id: 2, name: "Серия 2", files: [], status: "в работе" }
+                    { 
+                        id: 1, 
+                        name: "Серия 1", 
+                        files: [], 
+                        status: "завершено",
+                        description: "Первая серия, знакомство с главными героями" 
+                    },
+                    { 
+                        id: 2, 
+                        name: "Серия 2", 
+                        files: [], 
+                        status: "в работе",
+                        description: "Развитие сюжета, первые испытания" 
+                    }
                 ],
                 status: "в работе",
                 created: new Date().toISOString().split('T')[0],
@@ -465,15 +585,19 @@
 
         // DOM элементы
         const projectsContainer = document.getElementById('projects-container');
+        const teamContainer = document.getElementById('team-container');
         const projectModal = document.getElementById('project-modal');
+        const teamModal = document.getElementById('team-modal');
         const authModal = document.getElementById('auth-modal');
         const modalTitle = document.getElementById('modal-project-title');
         const modalContent = document.getElementById('project-modal-content');
+        const teamModalContent = document.getElementById('team-modal-content');
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const userMenu = document.getElementById('user-menu');
         const authBtn = document.getElementById('auth-btn');
         const addProjectBtn = document.getElementById('add-project-btn');
+        const manageTeamBtn = document.getElementById('manage-team-btn');
         const closeModalButtons = document.querySelectorAll('.close-modal');
         const currentYearSpan = document.getElementById('current-year');
         const authTabs = document.querySelectorAll('.auth-tab');
@@ -481,6 +605,142 @@
 
         // Установка текущего года в футере
         currentYearSpan.textContent = new Date().getFullYear();
+
+        // Рендеринг команды
+        function renderTeam() {
+            teamContainer.innerHTML = teamMembers.map(member => `
+                <div class="team-member">
+                    ${checkPermission(USER_ROLES.ADMIN) ? 
+                        `<button class="edit-member-btn" data-member-id="${member.id}">✏️</button>` : ''}
+                    <h3>${member.name}</h3>
+                    <p class="member-role">${member.role}</p>
+                    ${member.projects.length > 0 ? 
+                        `<p class="member-projects">Проекты: ${member.projects.join(', ')}</p>` : ''}
+                </div>
+            `).join('');
+            
+            // Добавляем обработчики для кнопок редактирования
+            if (checkPermission(USER_ROLES.ADMIN)) {
+                document.querySelectorAll('.edit-member-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const memberId = parseInt(btn.dataset.memberId);
+                        openTeamMemberModal(memberId);
+                    });
+                });
+            }
+        }
+
+        // Открытие модального окна редактирования участника команды
+        function openTeamMemberModal(memberId) {
+            const member = teamMembers.find(m => m.id === memberId);
+            if (!member) return;
+            
+            teamModalContent.innerHTML = `
+                <form id="team-member-form">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="member-name" style="display: block; margin-bottom: 0.5rem;">Имя</label>
+                        <input type="text" id="member-name" value="${member.name}" required 
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="member-role" style="display: block; margin-bottom: 0.5rem;">Роль</label>
+                        <input type="text" id="member-role" value="${member.role}" required 
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="member-projects" style="display: block; margin-bottom: 0.5rem;">Проекты (через запятую)</label>
+                        <input type="text" id="member-projects" value="${member.projects.join(', ')}" 
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <button type="button" class="btn btn-secondary" id="delete-member-btn">Удалить</button>
+                        <div>
+                            <button type="button" class="btn btn-secondary" id="cancel-member-btn">Отмена</button>
+                            <button type="submit" class="btn" style="margin-left: 0.5rem;">Сохранить</button>
+                        </div>
+                    </div>
+                </form>
+            `;
+            
+            // Обработчики событий
+            document.getElementById('cancel-member-btn').addEventListener('click', () => {
+                teamModal.style.display = 'none';
+            });
+            
+            document.getElementById('delete-member-btn').addEventListener('click', () => {
+                if (confirm(`Вы уверены, что хотите удалить ${member.name} из команды?`)) {
+                    teamMembers = teamMembers.filter(m => m.id !== memberId);
+                    saveTeam();
+                    renderTeam();
+                    teamModal.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('team-member-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                member.name = document.getElementById('member-name').value;
+                member.role = document.getElementById('member-role').value;
+                member.projects = document.getElementById('member-projects').value
+                    .split(',')
+                    .map(p => p.trim())
+                    .filter(p => p.length > 0);
+                
+                saveTeam();
+                renderTeam();
+                teamModal.style.display = 'none';
+            });
+            
+            teamModal.style.display = 'flex';
+        }
+
+        // Открытие модального окна управления командой
+        function openTeamManagement() {
+            teamModalContent.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <button class="btn" id="add-member-btn">Добавить участника</button>
+                </div>
+                
+                <div class="team-grid">
+                    ${teamMembers.map(member => `
+                        <div class="team-member" style="cursor: pointer;" data-member-id="${member.id}">
+                            <h3>${member.name}</h3>
+                            <p class="member-role">${member.role}</p>
+                            ${member.projects.length > 0 ? 
+                                `<p class="member-projects">Проекты: ${member.projects.join(', ')}</p>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Обработчики событий
+            document.getElementById('add-member-btn').addEventListener('click', () => {
+                const newMemberId = teamMembers.length > 0 ? Math.max(...teamMembers.map(m => m.id)) + 1 : 1;
+                
+                teamMembers.push({
+                    id: newMemberId,
+                    name: 'Новый участник',
+                    role: 'Новая роль',
+                    projects: []
+                });
+                
+                saveTeam();
+                openTeamMemberModal(newMemberId);
+            });
+            
+            document.querySelectorAll('.team-member').forEach(memberEl => {
+                memberEl.addEventListener('click', () => {
+                    const memberId = parseInt(memberEl.dataset.memberId);
+                    openTeamMemberModal(memberId);
+                });
+            });
+            
+            teamModal.style.display = 'flex';
+        }
 
         // Переключение табов авторизации
         authTabs.forEach(tab => {
@@ -498,9 +758,9 @@
         // Проверка прав пользователя
         function checkPermission(requiredRole) {
             const roleHierarchy = {
-                [USER_ROLES.GUEST]: 0,
-                [USER_ROLES.VIEWER]: 1,
-                [USER_ROLES.ADMIN]: 2
+                [USER_ROLES.GUEST]: 0,    // Гости - только просмотр
+                [USER_ROLES.VIEWER]: 1,   // Редакторы - просмотр и редактирование
+                [USER_ROLES.ADMIN]: 2     // Админы - полные права
             };
             
             return roleHierarchy[currentUser.role] >= roleHierarchy[requiredRole];
@@ -510,14 +770,21 @@
         function updateUI() {
             // Кнопка добавления проекта только для админов
             addProjectBtn.style.display = checkPermission(USER_ROLES.ADMIN) ? 'block' : 'none';
+            manageTeamBtn.style.display = checkPermission(USER_ROLES.ADMIN) ? 'block' : 'none';
             
             // Обновление меню пользователя
             if (currentUser.role !== USER_ROLES.GUEST) {
-                const badgeClass = currentUser.role === USER_ROLES.ADMIN ? 'badge-admin' : 'badge-viewer';
+                const badgeClass = 
+                    currentUser.role === USER_ROLES.ADMIN ? 'badge-admin' :
+                    currentUser.role === USER_ROLES.VIEWER ? 'badge-viewer' : 'badge-guest';
+                
                 userMenu.innerHTML = `
                     <div class="user-info">
                         <span>${currentUser.name}</span>
-                        <span class="user-badge ${badgeClass}">${currentUser.role === USER_ROLES.ADMIN ? 'Админ' : 'Редактор'}</span>
+                        <span class="user-badge ${badgeClass}">${
+                            currentUser.role === USER_ROLES.ADMIN ? 'Админ' : 
+                            currentUser.role === USER_ROLES.VIEWER ? 'Редактор' : 'Гость'
+                        }</span>
                         <button id="logout-btn" class="btn btn-secondary">Выйти</button>
                     </div>
                 `;
@@ -530,6 +797,7 @@
             }
             
             renderProjects();
+            renderTeam();
         }
 
         // Вход в систему
@@ -543,10 +811,13 @@
                 authModal.style.display = 'none';
                 return true;
             }
+            
+            // Не показываем данные аккаунта админа при ошибке
+            alert('Неверные email или пароль');
             return false;
         }
 
-        // Регистрация нового пользователя
+        // Регистрация нового пользователя (с ролью GUEST)
         function register(name, email, password) {
             if (users.some(u => u.email === email)) {
                 alert('Пользователь с таким email уже существует');
@@ -557,7 +828,7 @@
                 id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
                 email,
                 password: hashPassword(password),
-                role: USER_ROLES.VIEWER,
+                role: USER_ROLES.GUEST, // Новые пользователи - гости без прав
                 name
             };
             
@@ -569,6 +840,7 @@
             updateUI();
             authModal.style.display = 'none';
             
+            alert('Регистрация успешна! Ваш аккаунт ожидает подтверждения администратора.');
             return true;
         }
 
@@ -672,6 +944,11 @@
                                 <h4>${episode.name}</h4>
                                 <p><strong>Статус:</strong> <span class="${episode.status === 'завершено' ? 'status-complete' : 
                                     episode.status === 'в работе' ? 'status-in-progress' : 'status-pending'}">${episode.status}</span></p>
+                                ${episode.description ? `
+                                    <div class="episode-description">
+                                        ${episode.description}
+                                    </div>
+                                ` : ''}
                                 ${episode.files.length > 0 ? `
                                     <p><strong>Файлы:</strong></p>
                                     <ul style="margin-left: 1.5rem;">
@@ -759,6 +1036,10 @@
                                             <option value="ожидает" ${episode.status === 'ожидает' ? 'selected' : ''}>Ожидает</option>
                                         </select>
                                     </div>
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <label for="episode-desc-${episode.id}" style="display: block; margin-bottom: 0.3rem;">Описание серии</label>
+                                        <textarea id="episode-desc-${episode.id}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; min-height: 60px;">${episode.description || ''}</textarea>
+                                    </div>
                                     
                                     <div class="upload-area" id="upload-area-${episode.id}" data-episode-id="${episode.id}">
                                         <p>Перетащите файлы сюда или кликните для загрузки</p>
@@ -781,6 +1062,34 @@
                         
                         ${checkPermission(USER_ROLES.ADMIN) ? `
                             <button type="button" class="btn btn-secondary" id="add-episode-btn" style="margin-bottom: 1.5rem;">Добавить серию</button>
+                        ` : ''}
+                        
+                        ${checkPermission(USER_ROLES.ADMIN) ? `
+                            <h3 style="margin: 1.5rem 0 1rem;">Управление пользователями</h3>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;">
+                                <thead>
+                                    <tr style="background: #f1f2f6;">
+                                        <th style="padding: 0.5rem; text-align: left;">Имя</th>
+                                        <th style="padding: 0.5rem; text-align: left;">Email</th>
+                                        <th style="padding: 0.5rem; text-align: left;">Роль</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${users.map(user => `
+                                        <tr>
+                                            <td style="padding: 0.5rem; border-bottom: 1px solid #ddd;">${user.name}</td>
+                                            <td style="padding: 0.5rem; border-bottom: 1px solid #ddd;">${user.email}</td>
+                                            <td style="padding: 0.5rem; border-bottom: 1px solid #ddd;">
+                                                <select class="user-role-select" data-user-id="${user.id}">
+                                                    <option value="${USER_ROLES.GUEST}" ${user.role === USER_ROLES.GUEST ? 'selected' : ''}>Гость</option>
+                                                    <option value="${USER_ROLES.VIEWER}" ${user.role === USER_ROLES.VIEWER ? 'selected' : ''}>Редактор</option>
+                                                    <option value="${USER_ROLES.ADMIN}" ${user.role === USER_ROLES.ADMIN ? 'selected' : ''}>Админ</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         ` : ''}
                         
                         <div style="display: flex; justify-content: space-between;">
@@ -843,12 +1152,34 @@
                             id: newEpisodeId,
                             name: `Серия ${project.episodes.length + 1}`,
                             files: [],
-                            status: 'ожидает'
+                            status: 'ожидает',
+                            description: ''
                         });
                         saveProjects();
                         openProjectModal(projectId, 'edit');
                     });
                 }
+                
+                // Обработчики изменения ролей пользователей
+                document.querySelectorAll('.user-role-select').forEach(select => {
+                    select.addEventListener('change', function() {
+                        const userId = parseInt(this.dataset.userId);
+                        const newRole = this.value;
+                        
+                        const user = users.find(u => u.id === userId);
+                        if (user) {
+                            user.role = newRole;
+                            saveUsers();
+                            
+                            // Если изменили текущего пользователя - обновляем UI
+                            if (currentUser.id === userId) {
+                                currentUser.role = newRole;
+                                localStorage.setItem('freedomdub-current-user', JSON.stringify(currentUser));
+                                updateUI();
+                            }
+                        }
+                    });
+                });
                 
                 // Отмена редактирования
                 document.getElementById('cancel-project-btn').addEventListener('click', () => {
@@ -871,6 +1202,7 @@
                     project.episodes.forEach(episode => {
                         episode.name = document.getElementById(`episode-name-${episode.id}`).value;
                         episode.status = document.getElementById(`episode-status-${episode.id}`).value;
+                        episode.description = document.getElementById(`episode-desc-${episode.id}`).value;
                     });
                     
                     saveProjects();
@@ -906,6 +1238,11 @@
                             <option value="завершено" ${episode.status === 'завершено' ? 'selected' : ''}>Завершено</option>
                             <option value="ожидает" ${episode.status === 'ожидает' ? 'selected' : ''}>Ожидает</option>
                         </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="episode-desc" style="display: block; margin-bottom: 0.5rem;">Описание серии</label>
+                        <textarea id="episode-desc" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; min-height: 100px;">${episode.description || ''}</textarea>
                     </div>
                     
                     <div class="upload-area" id="upload-area">
@@ -970,6 +1307,7 @@
                 
                 episode.name = document.getElementById('episode-name').value;
                 episode.status = document.getElementById('episode-status').value;
+                episode.description = document.getElementById('episode-desc').value;
                 saveProjects();
                 
                 projectModal.style.display = 'none';
@@ -990,12 +1328,14 @@
             btn.addEventListener('click', () => {
                 projectModal.style.display = 'none';
                 authModal.style.display = 'none';
+                teamModal.style.display = 'none';
             });
         });
 
         window.addEventListener('click', (e) => {
             if (e.target === projectModal) projectModal.style.display = 'none';
             if (e.target === authModal) authModal.style.display = 'none';
+            if (e.target === teamModal) teamModal.style.display = 'none';
         });
 
         // Обработчик формы входа
@@ -1006,7 +1346,7 @@
             const password = document.getElementById('login-password').value;
             
             if (!login(email, password)) {
-                alert('Неверные учетные данные. Попробуйте admin@freedomdub.com/admin123 или editor@freedomdub.com/editor123');
+                alert('Неверные учетные данные');
             }
         });
 
@@ -1035,7 +1375,13 @@
                 title: `Новый проект ${newProjectId}`,
                 description: 'Описание нового проекта',
                 episodes: [
-                    { id: 1, name: 'Серия 1', files: [], status: 'ожидает' }
+                    { 
+                        id: 1, 
+                        name: 'Серия 1', 
+                        files: [], 
+                        status: 'ожидает',
+                        description: '' 
+                    }
                 ],
                 status: 'ожидает',
                 created: new Date().toISOString().split('T')[0],
@@ -1046,6 +1392,9 @@
             saveProjects();
             openProjectModal(newProjectId, 'edit');
         });
+
+        // Обработчик для управления командой
+        manageTeamBtn.addEventListener('click', openTeamManagement);
 
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
