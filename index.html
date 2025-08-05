@@ -282,6 +282,32 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Стили для табов */
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .auth-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .auth-tab.active {
+            border-bottom: 2px solid var(--primary);
+            font-weight: bold;
+        }
+        
+        .auth-content {
+            display: none;
+        }
+        
+        .auth-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -290,7 +316,7 @@
     <header>
         <div class="logo">FreedomDub</div>
         <div id="user-menu">
-            <button id="login-btn" class="btn btn-secondary">Вход</button>
+            <button id="auth-btn" class="btn btn-secondary">Вход / Регистрация</button>
         </div>
     </header>
     
@@ -316,24 +342,50 @@
         </div>
     </div>
     
-    <!-- Модальное окно для входа -->
-    <div class="modal" id="login-modal">
+    <!-- Модальное окно для аутентификации -->
+    <div class="modal" id="auth-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Вход в систему</h2>
+                <h2 class="modal-title">Авторизация</h2>
                 <button class="close-modal">&times;</button>
             </div>
-            <form id="login-form">
-                <div style="margin-bottom: 1rem;">
-                    <label for="login-email" style="display: block; margin-bottom: 0.5rem;">Email</label>
-                    <input type="email" id="login-email" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <label for="login-password" style="display: block; margin-bottom: 0.5rem;">Пароль</label>
-                    <input type="password" id="login-password" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <button type="submit" class="btn">Войти</button>
-            </form>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Вход</div>
+                <div class="auth-tab" data-tab="register">Регистрация</div>
+            </div>
+            
+            <div class="auth-content active" id="login-content">
+                <form id="login-form">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="login-email" style="display: block; margin-bottom: 0.5rem;">Email</label>
+                        <input type="email" id="login-email" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="login-password" style="display: block; margin-bottom: 0.5rem;">Пароль</label>
+                        <input type="password" id="login-password" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <button type="submit" class="btn">Войти</button>
+                </form>
+            </div>
+            
+            <div class="auth-content" id="register-content">
+                <form id="register-form">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="register-name" style="display: block; margin-bottom: 0.5rem;">Имя</label>
+                        <input type="text" id="register-name" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="register-email" style="display: block; margin-bottom: 0.5rem;">Email</label>
+                        <input type="email" id="register-email" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="register-password" style="display: block; margin-bottom: 0.5rem;">Пароль (минимум 6 символов)</label>
+                        <input type="password" id="register-password" minlength="6" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <button type="submit" class="btn">Зарегистрироваться</button>
+                </form>
+            </div>
         </div>
     </div>
     
@@ -356,21 +408,34 @@
             ADMIN: 'admin'
         };
         
+        // Хэширование пароля (упрощенная имитация)
+        function hashPassword(password) {
+            // В реальном приложении используйте алгоритмы типа bcrypt, PBKDF2 или Argon2
+            return 'hashed_' + password.split('').reverse().join('') + '_' + password.length;
+        }
+        
         // Данные пользователей
-        const users = [
+        let users = JSON.parse(localStorage.getItem('freedomdub-users')) || [
             { 
+                id: 1,
                 email: 'admin@freedomdub.com', 
-                password: 'admin123', 
+                password: hashPassword('admin123'), 
                 role: USER_ROLES.ADMIN, 
                 name: 'Администратор' 
             },
             { 
+                id: 2,
                 email: 'editor@freedomdub.com', 
-                password: 'editor123', 
+                password: hashPassword('editor123'), 
                 role: USER_ROLES.VIEWER, 
                 name: 'Редактор' 
             }
         ];
+
+        // Сохранение пользователей
+        function saveUsers() {
+            localStorage.setItem('freedomdub-users', JSON.stringify(users));
+        }
 
         // Имитация базы данных проектов
         let projects = JSON.parse(localStorage.getItem('freedomdub-projects')) || [
@@ -388,30 +453,47 @@
             }
         ];
 
-        // Сохранение в localStorage
+        // Сохранение проектов
         function saveProjects() {
             localStorage.setItem('freedomdub-projects', JSON.stringify(projects));
         }
 
         // Текущий пользователь
-        let currentUser = JSON.parse(localStorage.getItem('freedomdub-user')) || {
+        let currentUser = JSON.parse(localStorage.getItem('freedomdub-current-user')) || {
             role: USER_ROLES.GUEST
         };
 
         // DOM элементы
         const projectsContainer = document.getElementById('projects-container');
         const projectModal = document.getElementById('project-modal');
-        const loginModal = document.getElementById('login-modal');
+        const authModal = document.getElementById('auth-modal');
         const modalTitle = document.getElementById('modal-project-title');
         const modalContent = document.getElementById('project-modal-content');
         const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
         const userMenu = document.getElementById('user-menu');
+        const authBtn = document.getElementById('auth-btn');
         const addProjectBtn = document.getElementById('add-project-btn');
         const closeModalButtons = document.querySelectorAll('.close-modal');
         const currentYearSpan = document.getElementById('current-year');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const authContents = document.querySelectorAll('.auth-content');
 
         // Установка текущего года в футере
         currentYearSpan.textContent = new Date().getFullYear();
+
+        // Переключение табов авторизации
+        authTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.dataset.tab;
+                
+                authTabs.forEach(t => t.classList.remove('active'));
+                authContents.forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tabId}-content`).classList.add('active');
+            });
+        });
 
         // Проверка прав пользователя
         function checkPermission(requiredRole) {
@@ -441,9 +523,9 @@
                 `;
                 document.getElementById('logout-btn').addEventListener('click', logout);
             } else {
-                userMenu.innerHTML = '<button id="login-btn" class="btn btn-secondary">Вход</button>';
-                document.getElementById('login-btn').addEventListener('click', () => {
-                    loginModal.style.display = 'flex';
+                userMenu.innerHTML = '<button id="auth-btn" class="btn btn-secondary">Вход / Регистрация</button>';
+                document.getElementById('auth-btn').addEventListener('click', () => {
+                    authModal.style.display = 'flex';
                 });
             }
             
@@ -452,22 +534,48 @@
 
         // Вход в систему
         function login(email, password) {
-            const user = users.find(u => u.email === email && u.password === password);
+            const user = users.find(u => u.email === email && u.password === hashPassword(password));
             
             if (user) {
                 currentUser = user;
-                localStorage.setItem('freedomdub-user', JSON.stringify(user));
+                localStorage.setItem('freedomdub-current-user', JSON.stringify(user));
                 updateUI();
-                loginModal.style.display = 'none';
+                authModal.style.display = 'none';
                 return true;
             }
             return false;
         }
 
+        // Регистрация нового пользователя
+        function register(name, email, password) {
+            if (users.some(u => u.email === email)) {
+                alert('Пользователь с таким email уже существует');
+                return false;
+            }
+            
+            const newUser = {
+                id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+                email,
+                password: hashPassword(password),
+                role: USER_ROLES.VIEWER,
+                name
+            };
+            
+            users.push(newUser);
+            saveUsers();
+            
+            currentUser = newUser;
+            localStorage.setItem('freedomdub-current-user', JSON.stringify(newUser));
+            updateUI();
+            authModal.style.display = 'none';
+            
+            return true;
+        }
+
         // Выход из системы
         function logout() {
             currentUser = { role: USER_ROLES.GUEST };
-            localStorage.removeItem('freedomdub-user');
+            localStorage.removeItem('freedomdub-current-user');
             updateUI();
         }
 
@@ -881,13 +989,13 @@
         closeModalButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 projectModal.style.display = 'none';
-                loginModal.style.display = 'none';
+                authModal.style.display = 'none';
             });
         });
 
         window.addEventListener('click', (e) => {
             if (e.target === projectModal) projectModal.style.display = 'none';
-            if (e.target === loginModal) loginModal.style.display = 'none';
+            if (e.target === authModal) authModal.style.display = 'none';
         });
 
         // Обработчик формы входа
@@ -900,6 +1008,22 @@
             if (!login(email, password)) {
                 alert('Неверные учетные данные. Попробуйте admin@freedomdub.com/admin123 или editor@freedomdub.com/editor123');
             }
+        });
+
+        // Обработчик формы регистрации
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            
+            if (password.length < 6) {
+                alert('Пароль должен содержать минимум 6 символов');
+                return;
+            }
+            
+            register(name, email, password);
         });
 
         // Обработчик для добавления нового проекта
@@ -926,7 +1050,12 @@
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
             updateUI();
+            
+            // Обработчик кнопки авторизации
+            authBtn.addEventListener('click', () => {
+                authModal.style.display = 'flex';
+            });
         });
     </script>
 </body>
-  </html>
+</html>
