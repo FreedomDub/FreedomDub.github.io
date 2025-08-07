@@ -94,10 +94,11 @@
             text-align: center;
             margin: 20px 0;
         }
-        input[type="password"] {
+        input[type="password"], input[type="text"] {
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            margin-bottom: 10px;
         }
         .user-info {
             float: right;
@@ -128,6 +129,11 @@
             10% { opacity: 1; transform: translateY(0); }
             90% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-20px); }
+        }
+        #githubStatus {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
         }
     </style>
 </head>
@@ -165,8 +171,8 @@
                 <div id="comments-project1"></div>
                 
                 <div class="comment-form">
+                    <input type="text" id="username-project1" placeholder="Ваше имя" style="width: 200px;">
                     <textarea id="new-comment-project1" placeholder="Оставьте ваш комментарий..."></textarea>
-                    <input type="text" id="username-project1" placeholder="Ваше имя" style="width: 200px; margin-right: 10px;">
                     <button onclick="addComment('project1')">Отправить</button>
                 </div>
             </div>
@@ -181,8 +187,8 @@
                 <div id="comments-project2"></div>
                 
                 <div class="comment-form">
+                    <input type="text" id="username-project2" placeholder="Ваше имя" style="width: 200px;">
                     <textarea id="new-comment-project2" placeholder="Оставьте ваш комментарий..."></textarea>
-                    <input type="text" id="username-project2" placeholder="Ваше имя" style="width: 200px; margin-right: 10px;">
                     <button onclick="addComment('project2')">Отправить</button>
                 </div>
             </div>
@@ -204,47 +210,48 @@
         let blockedUsers = [];
         let isAdmin = false;
         let currentUser = 'Гость';
+        let githubToken = localStorage.getItem('github-token') || '';
         
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
             setupRealTimeUpdates();
+            checkForUpdates();
         });
         
-        // Загрузка данных из localStorage
+        // Загрузка данных
         function loadData() {
-            const savedComments = localStorage.getItem('freedomdub-comments');
-            const savedBlocked = localStorage.getItem('freedomdub-blocked-users');
-            const savedAdmin = localStorage.getItem('freedomdub-admin');
-            
-            if (savedComments) {
-                comments = JSON.parse(savedComments);
+            const savedData = localStorage.getItem('freedomdub-data');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    comments = data.comments || comments;
+                    blockedUsers = data.blockedUsers || blockedUsers;
+                    isAdmin = data.isAdmin || false;
+                    
+                    if (isAdmin) {
+                        document.getElementById('adminPanel').style.display = 'block';
+                        document.getElementById('loginForm').style.display = 'none';
+                        currentUser = 'Администратор';
+                        updateUserInfo();
+                    }
+                } catch (e) {
+                    console.error('Ошибка загрузки данных:', e);
+                }
             }
-            
-            if (savedBlocked) {
-                blockedUsers = JSON.parse(savedBlocked);
-            }
-            
-            if (savedAdmin) {
-                isAdmin = true;
-                document.getElementById('adminPanel').style.display = 'block';
-                document.getElementById('loginForm').style.display = 'none';
-                currentUser = 'Администратор';
-                updateUserInfo();
-            }
-            
             renderComments();
         }
         
-        // Сохранение данных в localStorage
+        // Сохранение данных
         function saveData() {
-            localStorage.setItem('freedomdub-comments', JSON.stringify(comments));
-            localStorage.setItem('freedomdub-blocked-users', JSON.stringify(blockedUsers));
-            
-            // Триггер синхронизации между вкладками
-            localStorage.setItem('freedomdub-last-update', Date.now().toString());
-            
-            showNotification('Данные сохранены локально');
+            const data = {
+                comments,
+                blockedUsers,
+                isAdmin
+            };
+            localStorage.setItem('freedomdub-data', JSON.stringify(data));
+            localStorage.setItem('freedomdub-last-update', Date.now());
+            showNotification('Данные сохранены');
         }
         
         // Настройка обновлений в реальном времени
@@ -252,7 +259,7 @@
             window.addEventListener('storage', function(event) {
                 if (event.key === 'freedomdub-last-update') {
                     loadData();
-                    showNotification('Получены обновления данных');
+                    showNotification('Получены новые данные');
                 }
             });
             
@@ -265,12 +272,12 @@
             try {
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`);
                 const data = await response.json();
-                const lastUpdate = localStorage.getItem('freedomdub-github-last-update');
+                const lastUpdate = localStorage.getItem('github-last-update');
                 
                 if (data.sha !== lastUpdate) {
                     const confirmed = confirm('Доступны новые изменения. Загрузить их?');
                     if (confirmed) {
-                        loadFromGitHub();
+                        await loadFromGitHub();
                     }
                 }
             } catch (error) {
@@ -285,18 +292,14 @@
                 const html = await response.text();
                 
                 // Извлечение данных из HTML
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const scriptContent = doc.querySelector('script').textContent;
+                const commentsMatch = html.match(/let comments = ({[\s\S]*?});/);
+                const blockedMatch = html.match(/let blockedUsers = (\[[\s\S]*?\]);/);
                 
-                // Извлечение данных из скрипта (упрощенный вариант)
-                const commentsMatch = scriptContent.match(/let comments = ({.*?});/s);
-                if (commentsMatch) {
+                if (commentsMatch && commentsMatch[1]) {
                     comments = JSON.parse(commentsMatch[1]);
                 }
                 
-                const blockedMatch = scriptContent.match(/let blockedUsers = (\[.*?\]);/);
-                if (blockedMatch) {
+                if (blockedMatch && blockedMatch[1]) {
                     blockedUsers = JSON.parse(blockedMatch[1]);
                 }
                 
@@ -307,41 +310,51 @@
                 // Сохранение хэша последнего обновления
                 const shaResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`);
                 const shaData = await shaResponse.json();
-                localStorage.setItem('freedomdub-github-last-update', shaData.sha);
+                localStorage.setItem('github-last-update', shaData.sha);
                 
             } catch (error) {
                 console.error('Ошибка при загрузке с GitHub:', error);
-                showNotification('Ошибка при загрузке данных с GitHub', true);
+                showNotification('Ошибка при загрузке данных', true);
             }
         }
         
-        // Сохранение данных на GitHub
+        // Сохранение на GitHub
         async function saveToGitHub() {
             if (!isAdmin) {
-                showNotification('Только администратор может сохранять на GitHub', true);
+                showNotification('Только администратор может сохранять', true);
                 return;
+            }
+            
+            if (!githubToken) {
+                githubToken = prompt('Введите GitHub Token:');
+                if (!githubToken) return;
+                localStorage.setItem('github-token', githubToken);
             }
             
             document.getElementById('githubStatus').textContent = 'Сохранение...';
             
             try {
-                // Получаем текущий файл с GitHub для получения SHA
-                const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`);
+                // Получаем текущий файл
+                const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+                    headers: {
+                        'Authorization': `token ${githubToken}`
+                    }
+                });
                 const fileData = await getResponse.json();
                 
-                // Создаем новый HTML с обновленными данными
+                // Создаем новый HTML
                 const newHtml = generateUpdatedHtml();
                 const content = btoa(unescape(encodeURIComponent(newHtml)));
                 
-                // Отправляем обновление на GitHub
+                // Отправляем обновление
                 const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `token ${getGitHubToken()}`,
+                        'Authorization': `token ${githubToken}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: 'Обновление комментариев и данных',
+                        message: 'Обновление комментариев',
                         content: content,
                         sha: fileData.sha
                     })
@@ -350,75 +363,75 @@
                 const result = await updateResponse.json();
                 
                 if (result.content) {
-                    showNotification('Данные успешно сохранены на GitHub');
+                    showNotification('Данные сохранены на GitHub');
                     document.getElementById('githubStatus').textContent = 'Сохранено: ' + new Date().toLocaleTimeString();
-                    localStorage.setItem('freedomdub-github-last-update', result.content.sha);
+                    localStorage.setItem('github-last-update', result.content.sha);
                 } else {
-                    throw new Error(result.message || 'Неизвестная ошибка');
+                    throw new Error(result.message || 'Ошибка сохранения');
                 }
             } catch (error) {
-                console.error('Ошибка при сохранении на GitHub:', error);
-                showNotification('Ошибка при сохранении на GitHub: ' + error.message, true);
+                console.error('Ошибка:', error);
+                showNotification('Ошибка сохранения: ' + error.message, true);
                 document.getElementById('githubStatus').textContent = 'Ошибка: ' + error.message;
             }
         }
         
-        // Генерация обновленного HTML с текущими данными
+        // Генерация HTML с текущими данными
         function generateUpdatedHtml() {
-            const template = `<!DOCTYPE html>
+            return `<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FreedomDub Projects</title>
     <style>
-        /* Стили остаются без изменений */
+        /* Все стили остаются */
         ${document.querySelector('style').textContent}
     </style>
 </head>
 <body>
-    <!-- HTML структура остается без изменений -->
-    ${document.querySelector('.container').outerHTML}
-    
+    <div class="container">
+        <!-- Вся HTML структура -->
+        ${document.querySelector('.container').outerHTML}
+    </div>
+
     <script>
         // Данные приложения
         let comments = ${JSON.stringify(comments, null, 4)};
         let blockedUsers = ${JSON.stringify(blockedUsers, null, 4)};
         
         // Остальной JavaScript код
-        ${document.querySelector('script').textContent.replace(/let comments = {.*?};/s, '').replace(/let blockedUsers = \[.*?\];/, '')}
+        ${document.querySelector('script').textContent
+            .replace(/let comments = {[\s\S]*?};/, '')
+            .replace(/let blockedUsers = \[[\s\S]*?\];/, '')}
     </script>
 </body>
 </html>`;
-            
-            return template;
-        }
-        
-        // Получение токена GitHub (в реальном проекте используйте более безопасный способ)
-        function getGitHubToken() {
-            return prompt('Введите ваш GitHub Personal Access Token (требуются права repo):');
         }
         
         // Рендеринг комментариев
         function renderComments() {
             for (const projectId in comments) {
                 const container = document.getElementById(`comments-${projectId}`);
-                container.innerHTML = '';
-                
-                comments[projectId].forEach((comment, index) => {
-                    const commentDiv = document.createElement('div');
-                    commentDiv.className = 'comment';
-                    commentDiv.innerHTML = `
-                        <strong>${comment.author}</strong>
-                        <span>${new Date(comment.date).toLocaleString()}</span>
-                        <p>${comment.text}</p>
-                        ${isAdmin ? `<div class="admin-controls">
-                            <button onclick="deleteComment('${projectId}', ${index})">Удалить</button>
-                            <button onclick="blockUser('${comment.author}')">Блокировать</button>
-                        </div>` : ''}
-                    `;
-                    container.appendChild(commentDiv);
-                });
+                if (container) {
+                    container.innerHTML = '';
+                    
+                    comments[projectId].forEach((comment, index) => {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'comment';
+                        commentDiv.innerHTML = `
+                            <strong>${comment.author}</strong>
+                            <span>${new Date(comment.date).toLocaleString()}</span>
+                            <p>${comment.text}</p>
+                            ${isAdmin ? `
+                            <div class="admin-controls">
+                                <button onclick="deleteComment('${projectId}', ${index})">Удалить</button>
+                                <button onclick="blockUser('${comment.author}')">Блокировать</button>
+                            </div>` : ''}
+                        `;
+                        container.appendChild(commentDiv);
+                    });
+                }
             }
         }
         
@@ -430,7 +443,7 @@
             const author = usernameInput.value.trim();
             
             if (!text || !author) {
-                showNotification('Пожалуйста, заполните все поля', true);
+                showNotification('Заполните все поля', true);
                 return;
             }
             
@@ -438,10 +451,9 @@
                 showNotification('Этот пользователь заблокирован', true);
                 return;
             }
-            
-            const newComment = {
-                author: author,
-                text: text,
+const newComment = {
+                author,
+                text,
                 date: new Date().toISOString()
             };
             
@@ -452,13 +464,10 @@
             textarea.value = '';
             showNotification('Комментарий добавлен');
             
-            // Если администратор, сразу сохраняем на GitHub
-            if (isAdmin) {
-                saveToGitHub();
-            }
+            if (isAdmin) saveToGitHub();
         }
         
-        // Удаление комментария (только для администратора)
+        // Удаление комментария
         function deleteComment(projectId, index) {
             if (!isAdmin) return;
             
@@ -466,12 +475,10 @@
             saveData();
             renderComments();
             showNotification('Комментарий удален');
-            
-            // Сразу сохраняем на GitHub
             saveToGitHub();
         }
         
-        // Блокировка пользователя (только для администратора)
+        // Блокировка пользователя
         function blockUser(username) {
             if (!isAdmin) return;
             
@@ -479,8 +486,6 @@
                 blockedUsers.push(username);
                 saveData();
                 showNotification(`Пользователь ${username} заблокирован`);
-                
-                // Сразу сохраняем на GitHub
                 saveToGitHub();
             }
         }
@@ -491,26 +496,26 @@
             
             if (password === ADMIN_PASSWORD) {
                 isAdmin = true;
-                localStorage.setItem('freedomdub-admin', 'true');
                 document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('loginForm').style.display = 'none';
                 currentUser = 'Администратор';
                 updateUserInfo();
+                saveData();
                 showNotification('Вы вошли как администратор');
             } else {
-                showNotification('Неверный пароль администратора', true);
+                showNotification('Неверный пароль', true);
             }
         }
         
         // Выход администратора
         function logoutAdmin() {
             isAdmin = false;
-            localStorage.removeItem('freedomdub-admin');
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
             currentUser = 'Гость';
             updateUserInfo();
-            showNotification('Вы вышли из режима администратора');
+            saveData();
+            showNotification('Вы вышли');
         }
         
         // Обновление информации о пользователе
