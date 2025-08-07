@@ -180,7 +180,224 @@
             overflow-y: auto;
         }
         
-        /* Остальные стили... */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #636e72;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--secondary);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .file-list {
+            margin-top: 1.5rem;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            background: #f1f2f6;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70%;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary);
+        }
+        
+        .action-btn.delete {
+            color: var(--error);
+        }
+        
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .team-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .team-member {
+            text-align: center;
+            padding: 1rem;
+            background: #f1f2f6;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .member-role {
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .member-projects {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: #636e72;
+        }
+        
+        .edit-member-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary);
+            display: none;
+        }
+        
+        .team-member:hover .edit-member-btn {
+            display: block;
+        }
+        
+        .episode-description {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #636e72;
+            padding: 0.5rem;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .auth-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .auth-tab.active {
+            border-bottom: 2px solid var(--primary);
+            font-weight: bold;
+        }
+        
+        .auth-content {
+            display: none;
+        }
+        
+        .auth-content.active {
+            display: block;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-admin {
+            background-color: var(--admin);
+            color: white;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .user-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .badge-admin {
+            background-color: var(--admin);
+            color: white;
+        }
+        
+        .badge-viewer {
+            background-color: var(--viewer);
+            color: white;
+        }
+        
+        .badge-guest {
+            background-color: var(--guest);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .team-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -198,31 +415,31 @@
         
         <div class="admin-panel" id="adminPanel">
             <h3>Админ-панель</h3>
-            <button onclick="saveToGitHub()" style="background: #24292e;">Сохранить на GitHub</button>
+            <p>Вы вошли как администратор. Теперь вы можете удалять комментарии и блокировать пользователи.</p>
+            <button class="btn" onclick="logoutAdmin()">Выйти</button>
+            <button class="btn" onclick="saveToGitHub()" style="background: #24292e; color: white;">Сохранить на GitHub</button>
             <div id="githubStatus"></div>
         </div>
         
         <div class="login-form" id="loginForm">
             <h3>Вход для администратора</h3>
             <input type="password" id="adminPassword" placeholder="Пароль администратора">
-            <button onclick="loginAsAdmin()">Войти</button>
+            <button class="btn" onclick="loginAsAdmin()">Войти</button>
         </div>
         
-        <div class="project">
-            <h2>Проект 1</h2>
-            <div class="comment-section">
-                <h3>Комментарии</h3>
-                <div id="comments-project1"></div>
-                <div class="comment-form">
-                    <input type="text" id="username-project1" placeholder="Ваше имя">
-                    <textarea id="new-comment-project1" placeholder="Оставьте ваш комментарий..."></textarea>
-                    <button onclick="addComment('project1')">Отправить</button>
-                </div>
-            </div>
-        </div>
+        <button id="add-project-btn" class="btn btn-admin" style="display: none;">Добавить проект</button>
+        <button id="manage-team-btn" class="btn btn-admin" style="display: none; margin-left: 0.5rem;">Управление командой</button>
+        <button id="sync-data-btn" class="btn" style="margin-left: 0.5rem;">Синхронизировать данные</button>
         
         <div class="projects-grid" id="projects-container">
             <!-- Проекты будут загружаться здесь -->
+        </div>
+        
+        <div class="team-section">
+            <h2>Наша команда</h2>
+            <div class="team-grid" id="team-container">
+                <!-- Команда будет загружаться здесь -->
+            </div>
         </div>
     </div>
     
@@ -232,136 +449,355 @@
                 <h2 class="modal-title" id="modal-project-title">Новый проект</h2>
                 <button class="close-modal">&times;</button>
             </div>
-            <div id="project-modal-content"></div>
+            <div id="project-modal-content">
+                <!-- Контент будет загружаться здесь -->
+            </div>
         </div>
     </div>
-
+    
+    <div class="modal" id="team-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Управление командой</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="team-modal-content">
+                <!-- Контент будет загружаться здесь -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="auth-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Авторизация</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Вход</div>
+                <div class="auth-tab" data-tab="register">Регистрация</div>
+            </div>
+            
+            <div class="auth-content active" id="login-content">
+                <form id="login-form">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="login-email" style="display: block; margin-bottom: 0.5rem;">Email</label>
+                        <input type="email" id="login-email" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="login-password" style="display: block; margin-bottom: 0.5rem;">Пароль</label>
+                        <input type="password" id="login-password" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <button type="submit" class="btn">Войти</button>
+                </form>
+            </div>
+            
+            <div class="auth-content" id="register-content">
+                <form id="register-form">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="register-name" style="display: block; margin-bottom: 0.5rem;">Имя</label>
+                        <input type="text" id="register-name" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="register-email" style="display: block; margin-bottom: 0.5rem;">Email</label>
+                        <input type="email" id="register-email" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="register-password" style="display: block; margin-bottom: 0.5rem;">Пароль (минимум 6 символов)</label>
+                        <input type="password" id="register-password" minlength="6" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <button type="submit" class="btn">Зарегистрироваться</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        &copy; <span id="current-year"></span> FreedomDub Studio. Все права защищены.
+    </footer>
+    
     <script>
         // Конфигурация GitHub
         const GITHUB_REPO = 'FreedomDub/FreedomDub.github.io';
         const GITHUB_FILE = 'index.html';
-        const GITHUB_TOKEN = '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'; // Пример токена, замените на свой
-        const ADMIN_PASSWORD = 'admin123'; // Замените на сложный пароль
+        const ADMIN_PASSWORD = 'admin123'; // В реальном проекте используйте более сложный пароль
         
         // Данные приложения
-        let comments = {
-            'project1': []
+        const USER_ROLES = {
+            GUEST: 'guest',
+            VIEWER: 'viewer',
+            ADMIN: 'admin'
         };
         
-        let projects = [
-            {
+        let comments = JSON.parse(localStorage.getItem('freedomdub-comments')) || {};
+        let blockedUsers = JSON.parse(localStorage.getItem('freedomdub-blocked-users')) || [];
+        let isAdmin = localStorage.getItem('freedomdub-is-admin') === 'true' || false;
+        let currentUser = JSON.parse(localStorage.getItem('freedomdub-current-user')) || { 
+            name: 'Гость', 
+            role: USER_ROLES.GUEST 
+        };
+        
+        let users = JSON.parse(localStorage.getItem('freedomdub-users')) || [
+            { 
                 id: 1,
-                title: "Пример проекта",
-                description: "Описание проекта",
-                status: "в работе",
-                created: new Date().toISOString()
+                email: 'admin@freedomdub.com', 
+                password: hashPassword('admin123'), 
+                role: USER_ROLES.ADMIN, 
+                name: 'Администратор' 
             }
         ];
         
-        let isAdmin = false;
+        let teamMembers = JSON.parse(localStorage.getItem('freedomdub-team')) || [
+            { id: 1, name: 'Алексей Петров', role: 'Актёр озвучки', projects: ['Проект 1'] }
+        ];
         
-        // Инициализация
+        let projects = JSON.parse(localStorage.getItem('freedomdub-projects')) || [
+            {
+                id: 1,
+                title: "Проект 1",
+                description: "Описание проекта 1",
+                episodes: [],
+                status: "в работе",
+                created: new Date().toISOString().split('T')[0],
+                updated: new Date().toISOString().split('T')[0]
+            }
+        ];
+        
+        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
+            // Установка текущего года в футере
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Инициализация элементов интерфейса
+            initUI();
+            
+            // Загрузка данных
             loadData();
-            renderProjects();
+            
+            // Обработчики событий
+            setupEventListeners();
+            
+            // Проверка обновлений
+            checkForUpdates();
         });
         
+        function initUI() {
+            // Обновление интерфейса в зависимости от роли пользователя
+            updateUI();
+            
+            // Инициализация модальных окон
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        modal.style.display = 'none';
+                    });
+                });
+            });
+            
+            // Инициализация вкладок авторизации
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    
+                    // Удаляем активный класс у всех вкладок и контента
+                    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.auth-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Добавляем активный класс текущей вкладке и соответствующему контенту
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}-content`).classList.add('active');
+                });
+            });
+        }
+        
+        function setupEventListeners() {
+            // Обработчик кнопки авторизации
+            document.getElementById('auth-btn').addEventListener('click', () => {
+                document.getElementById('auth-modal').style.display = 'flex';
+            });
+            
+            // Обработчик формы входа
+            document.getElementById('login-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                login();
+            });
+            
+            // Обработчик формы регистрации
+            document.getElementById('register-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                register();
+            });
+            
+            // Обработчик кнопки добавления проекта
+            document.getElementById('add-project-btn').addEventListener('click', () => {
+                openProjectModal(null, 'create');
+            });
+            
+            // Обработчик кнопки управления командой
+            document.getElementById('manage-team-btn').addEventListener('click', () => {
+                document.getElementById('team-modal').style.display = 'flex';
+                renderTeamManagement();
+            });
+            
+            // Обработчик кнопки синхронизации данных
+            document.getElementById('sync-data-btn').addEventListener('click', () => {
+                checkForUpdates();
+            });
+            
+            // Закрытие модальных окон при клике вне контента
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
         function loadData() {
-            const savedData = localStorage.getItem('freedomdub-data');
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                comments = data.comments || comments;
-                projects = data.projects || projects;
-                isAdmin = data.isAdmin || false;
+            // Загрузка данных из localStorage
+            const savedComments = localStorage.getItem('freedomdub-comments');
+            if (savedComments) {
+                comments = JSON.parse(savedComments);
+            }
+            
+            const savedBlockedUsers = localStorage.getItem('freedomdub-blocked-users');
+            if (savedBlockedUsers) {
+                blockedUsers = JSON.parse(savedBlockedUsers);
+            }
+            
+            const savedIsAdmin = localStorage.getItem('freedomdub-is-admin');
+            if (savedIsAdmin) {
+                isAdmin = savedIsAdmin === 'true';
+            }
+            
+            const savedCurrentUser = localStorage.getItem('freedomdub-current-user');
+            if (savedCurrentUser) {
+                currentUser = JSON.parse(savedCurrentUser);
+            }
+            
+            const savedUsers = localStorage.getItem('freedomdub-users');
+            if (savedUsers) {
+                users = JSON.parse(savedUsers);
+            }
+            
+            const savedTeam = localStorage.getItem('freedomdub-team');
+            if (savedTeam) {
+                teamMembers = JSON.parse(savedTeam);
+            }
+            
+            const savedProjects = localStorage.getItem('freedomdub-projects');
+            if (savedProjects) {
+                projects = JSON.parse(savedProjects);
+            }
+            
+            // Обновление интерфейса
+            updateUI();
+            renderProjects();
+            renderTeam();
+            
+            // Показ админ-панели, если пользователь администратор
+            if (isAdmin) {
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('loginForm').style.display = 'none';
+            } else {
+                document.getElementById('adminPanel').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'block';
+            }
+        }
+        
+        function saveData() {
+            // Сохранение всех данных в localStorage
+            localStorage.setItem('freedomdub-comments', JSON.stringify(comments));
+            localStorage.setItem('freedomdub-blocked-users', JSON.stringify(blockedUsers));
+            localStorage.setItem('freedomdub-is-admin', isAdmin.toString());
+            localStorage.setItem('freedomdub-current-user', JSON.stringify(currentUser));
+            localStorage.setItem('freedomdub-users', JSON.stringify(users));
+            localStorage.setItem('freedomdub-team', JSON.stringify(teamMembers));
+            localStorage.setItem('freedomdub-projects', JSON.stringify(projects));
+            localStorage.setItem('freedomdub-last-update', Date.now().toString());
+            
+            showNotification('Данные сохранены');
+        }
+        
+        function hashPassword(password) {
+            // Простое хеширование пароля (в реальном проекте используйте более надежные методы)
+            return 'hashed_' + password.split('').reverse().join('') + '_' + password.length;
+        }
+        
+        function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const user = users.find(u => u.email === email && u.password === hashPassword(password));
+            
+            if (user) {
+                currentUser = {
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                };
+                
+                isAdmin = user.role === USER_ROLES.ADMIN;
+                
+                saveData();
+                updateUI();
+                document.getElementById('auth-modal').style.display = 'none';
+                showNotification(`Добро пожаловать, ${user.name}!`);
                 
                 if (isAdmin) {
                     document.getElementById('adminPanel').style.display = 'block';
                     document.getElementById('loginForm').style.display = 'none';
                 }
+            } else {
+                showNotification('Неверный email или пароль', true);
             }
-            renderComments();
         }
         
-        function saveData() {
-            const data = {
-                comments,
-                projects,
-                isAdmin
-            };
-            localStorage.setItem('freedomdub-data', JSON.stringify(data));
-        }
-        
-        function renderComments() {
-            const container = document.getElementById('comments-project1');
-            container.innerHTML = '';
+        function register() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
             
-            comments['project1'].forEach((comment, index) => {
-                const commentDiv = document.createElement('div');
-                commentDiv.className = 'comment';
-                commentDiv.innerHTML = `
-                    <strong>${comment.author}</strong>
-                    <span>${new Date(comment.date).toLocaleString()}</span>
-                    <p>${comment.text}</p>
-                    ${isAdmin ? `
-                    <div class="admin-controls">
-                        <button onclick="deleteComment('project1', ${index})">Удалить</button>
-                    </div>` : ''}
-                `;
-                container.appendChild(commentDiv);
-            });
-        }
-        
-        function renderProjects() {
-            const container = document.getElementById('projects-container');
-            container.innerHTML = '';
-            
-            projects.forEach(project => {
-                const projectCard = document.createElement('div');
-                projectCard.className = 'project-card';
-                projectCard.innerHTML = `
-                    <div class="project-image">
-                        <span>${project.title.charAt(0)}</span>
-                        <span class="project-status ${project.status === 'завершено' ? 'status-complete' : 'status-in-progress'}">
-                            ${project.status}
-                        </span>
-                    </div>
-                    <div class="project-info">
-                        <h3>${project.title}</h3>
-                        <p>${project.description}</p>
-                    </div>
-                `;
-                container.appendChild(projectCard);
-            });
-        }
-        
-        function addComment(projectId) {
-            const text = document.getElementById(`new-comment-${projectId}`).value.trim();
-            const author = document.getElementById(`username-${projectId}`).value.trim();
-            
-            if (!text || !author) {
-                showNotification('Заполните все поля', true);
+            if (password.length < 6) {
+                showNotification('Пароль должен содержать минимум 6 символов', true);
                 return;
             }
             
-            comments[projectId].push({
-                author,
-                text,
-                date: new Date().toISOString()
-            });
+            if (users.some(u => u.email === email)) {
+                showNotification('Пользователь с таким email уже существует', true);
+                return;
+            }
+            
+            const newUser = {
+                id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+                name,
+                email,
+                password: hashPassword(password),
+                role: USER_ROLES.VIEWER
+            };
+            
+            users.push(newUser);
+            currentUser = {
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role
+            };
             
             saveData();
-            renderComments();
-            document.getElementById(`new-comment-${projectId}`).value = '';
-            showNotification('Комментарий добавлен');
+            updateUI();
+            document.getElementById('auth-modal').style.display = 'none';
+            showNotification(`Регистрация успешна, ${name}!`);
         }
         
-        function deleteComment(projectId, index) {
-            if (!isAdmin) return;
+        function logout() {
+            currentUser = { name: 'Гость', role: USER_ROLES.GUEST };
+            isAdmin = false;
             
-            comments[projectId].splice(index, 1);
             saveData();
-            renderComments();
-            showNotification('Комментарий удален');
+            updateUI();
+            showNotification('Вы вышли из системы');
         }
         
         function loginAsAdmin() {
@@ -369,12 +805,478 @@
             
             if (password === ADMIN_PASSWORD) {
                 isAdmin = true;
+                currentUser = { name: 'Администратор', role: USER_ROLES.ADMIN };
+                
+                saveData();
+                updateUI();
                 document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('loginForm').style.display = 'none';
-                saveData();
                 showNotification('Вы вошли как администратор');
             } else {
                 showNotification('Неверный пароль', true);
+            }
+        }
+        
+        function logoutAdmin() {
+            isAdmin = false;
+            currentUser = { name: 'Гость', role: USER_ROLES.GUEST };
+            
+            saveData();
+            updateUI();
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            showNotification('Вы вышли из административного режима');
+        }
+        
+        function updateUI() {
+            const addProjectBtn = document.getElementById('add-project-btn');
+            const manageTeamBtn = document.getElementById('manage-team-btn');
+            const userMenu = document.getElementById('user-menu');
+            
+            addProjectBtn.style.display = checkPermission(USER_ROLES.ADMIN) ? 'block' : 'none';
+            manageTeamBtn.style.display = checkPermission(USER_ROLES.ADMIN) ? 'block' : 'none';
+            
+            if (currentUser.role !== USER_ROLES.GUEST) {
+                const badgeClass = 
+                    currentUser.role === USER_ROLES.ADMIN ? 'badge-admin' :
+                    currentUser.role === USER_ROLES.VIEWER ? 'badge-viewer' : 'badge-guest';
+                
+                userMenu.innerHTML = `
+                    <div class="user-info">
+                        <span>${currentUser.name}</span>
+                        <span class="user-badge ${badgeClass}">${
+                            currentUser.role === USER_ROLES.ADMIN ? 'Админ' : 
+                            currentUser.role === USER_ROLES.VIEWER ? 'Редактор' : 'Гость'
+                        }</span>
+                        <button id="logout-btn" class="btn btn-secondary">Выйти</button>
+                    </div>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', logout);
+            } else {
+                userMenu.innerHTML = '<button id="auth-btn" class="btn btn-secondary">Вход / Регистрация</button>';
+                document.getElementById('auth-btn').addEventListener('click', () => {
+                    document.getElementById('auth-modal').style.display = 'flex';
+                });
+            }
+            
+            renderProjects();
+            renderTeam();
+        }
+        
+        function checkPermission(requiredRole) {
+            const roleHierarchy = {
+                [USER_ROLES.GUEST]: 0,
+                [USER_ROLES.VIEWER]: 1,
+                [USER_ROLES.ADMIN]: 2
+            };
+            
+            return roleHierarchy[currentUser.role] >= roleHierarchy[requiredRole];
+        }
+        
+        function renderProjects() {
+            const projectsContainer = document.getElementById('projects-container');
+            
+            if (!projectsContainer) return;
+            
+            projectsContainer.innerHTML = projects.map(project => `
+                <div class="project-card" data-id="${project.id}">
+                    <div class="project-image">
+                        <span>${project.title.charAt(0)}</span>
+                        <span class="project-status ${project.status === 'завершено' ? 'status-complete' : 
+                            project.status === 'в работе' ? 'status-in-progress' : ''}">${project.status}</span>
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">${project.title}</h3>
+                        <p style="margin-bottom: 0.5rem; font-size: 0.9rem; color: #636e72;">${project.description}</p>
+                        <div class="project-meta">
+                            <span>Обновлено: ${formatDate(project.updated)}</span>
+                        </div>
+                        <button class="btn btn-secondary" data-action="view">Просмотр</button>
+                        ${checkPermission(USER_ROLES.VIEWER) ? 
+                            `<button class="btn" data-action="edit" style="margin-left: 0.5rem;">Редактировать</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('[data-action="view"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const projectId = parseInt(this.closest('.project-card').dataset.id);
+                    openProjectModal(projectId, 'view');
+                });
+            });
+            
+            document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const projectId = parseInt(this.closest('.project-card').dataset.id);
+                    openProjectModal(projectId, 'edit');
+                });
+            });
+        }
+        
+        function renderTeam() {
+            const teamContainer = document.getElementById('team-container');
+            
+            if (!teamContainer) return;
+            
+            teamContainer.innerHTML = teamMembers.map(member => `
+                <div class="team-member">
+                    ${checkPermission(USER_ROLES.ADMIN) ? 
+                        `<button class="edit-member-btn" data-member-id="${member.id}">✏️</button>` : ''}
+                    <h3>${member.name}</h3>
+                    <p class="member-role">${member.role}</p>
+                    ${member.projects && member.projects.length > 0 ? 
+                        `<p class="member-projects">Проекты: ${member.projects.join(', ')}</p>` : ''}
+                </div>
+            `).join('');
+            
+            if (checkPermission(USER_ROLES.ADMIN)) {
+                document.querySelectorAll('.edit-member-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const memberId = parseInt(btn.dataset.memberId);
+                        openTeamMemberModal(memberId);
+                    });
+                });
+            }
+        }
+        
+        function renderTeamManagement() {
+            const teamModalContent = document.getElementById('team-modal-content');
+            
+            if (!teamModalContent) return;
+            
+            teamModalContent.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <button class="btn" onclick="openTeamMemberModal(null)">Добавить участника</button>
+                </div>
+                <div class="team-grid">
+                    ${teamMembers.map(member => `
+                        <div class="team-member">
+                            <button class="edit-member-btn" data-member-id="${member.id}">✏️</button>
+                            <h3>${member.name}</h3>
+                            <p class="member-role">${member.role}</p>
+                            ${member.projects && member.projects.length > 0 ? 
+                                `<p class="member-projects">Проекты: ${member.projects.join(', ')}</p>` : ''}
+                            <button class="btn btn-secondary" style="margin-top: 0.5rem;" 
+                                onclick="deleteTeamMember(${member.id})">Удалить</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function openProjectModal(projectId, mode) {
+            const modal = document.getElementById('project-modal');
+            const modalTitle = document.getElementById('modal-project-title');
+            const modalContent = document.getElementById('project-modal-content');
+            
+            if (!modal || !modalTitle || !modalContent) return;
+            
+            if (mode === 'create') {
+                modalTitle.textContent = 'Создать новый проект';
+                
+                modalContent.innerHTML = `
+                    <form id="project-form">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="project-title" style="display: block; margin-bottom: 0.5rem;">Название проекта</label>
+                            <input type="text" id="project-title" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label for="project-description" style="display: block; margin-bottom: 0.5rem;">Описание</label>
+                            <textarea id="project-description" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; min-height: 100px;"></textarea>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="project-status" style="display: block; margin-bottom: 0.5rem;">Статус</label>
+                            <select id="project-status" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="в работе">В работе</option>
+                                <option value="завершено">Завершено</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Создать проект</button>
+                    </form>
+                `;
+                
+                document.getElementById('project-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    createProject();
+                });
+            } else {
+                const project = projects.find(p => p.id === projectId);
+                if (!project) return;
+                
+                modalTitle.textContent = project.title;
+                
+                if (mode === 'view') {
+                    modalContent.innerHTML = `
+                        <p><strong>Описание:</strong> ${project.description}</p>
+                        <p><strong>Статус:</strong> <span class="${project.status === 'завершено' ? 'status-complete' : 
+                            project.status === 'в работе' ? 'status-in-progress' : ''}">${project.status}</span></p>
+                        <p><strong>Создан:</strong> ${formatDate(project.created)}</p>
+                        <p><strong>Обновлен:</strong> ${formatDate(project.updated)}</p>
+                        
+                        ${checkPermission(USER_ROLES.VIEWER) ? `
+                            <div style="margin-top: 1.5rem;">
+                                <button class="btn" id="edit-project-btn">Редактировать проект</button>
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    if (checkPermission(USER_ROLES.VIEWER)) {
+                        document.getElementById('edit-project-btn').addEventListener('click', () => {
+                            openProjectModal(projectId, 'edit');
+                        });
+                    }
+                } else if (mode === 'edit') {
+                    modalContent.innerHTML = `
+                        <form id="project-form">
+                            <div style="margin-bottom: 1rem;">
+                                <label for="project-title" style="display: block; margin-bottom: 0.5rem;">Название проекта</label>
+                                <input type="text" id="project-title" value="${project.title}" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label for="project-description" style="display: block; margin-bottom: 0.5rem;">Описание</label>
+                                <textarea id="project-description" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; min-height: 100px;">${project.description}</textarea>
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label for="project-status" style="display: block; margin-bottom: 0.5rem;">Статус</label>
+                                <select id="project-status" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                    <option value="в работе" ${project.status === 'в работе' ? 'selected' : ''}>В работе</option>
+                                    <option value="завершено" ${project.status === 'завершено' ? 'selected' : ''}>Завершено</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn">Сохранить изменения</button>
+                        </form>
+                    `;
+                    
+                    document.getElementById('project-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        updateProject(projectId);
+                    });
+                }
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        function openTeamMemberModal(memberId) {
+            const modal = document.getElementById('team-modal');
+            const modalContent = document.getElementById('team-modal-content');
+            
+            if (!modal || !modalContent) return;
+            
+            if (memberId === null) {
+                // Создание нового участника
+                modalContent.innerHTML = `
+                    <h3>Добавить участника команды</h3>
+                    <form id="team-member-form">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="member-name" style="display: block; margin-bottom: 0.5rem;">Имя</label>
+                            <input type="text" id="member-name" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label for="member-role" style="display: block; margin-bottom: 0.5rem;">Роль</label>
+                            <input type="text" id="member-role" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="member-projects" style="display: block; margin-bottom: 0.5rem;">Проекты (через запятую)</label>
+                            <input type="text" id="member-projects" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <button type="submit" class="btn">Сохранить</button>
+                    </form>
+                `;
+                
+                document.getElementById('team-member-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    createTeamMember();
+                });
+            } else {
+                // Редактирование существующего участника
+                const member = teamMembers.find(m => m.id === memberId);
+                if (!member) return;
+                
+                modalContent.innerHTML = `
+                    <h3>Редактировать участника команды</h3>
+                    <form id="team-member-form">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="member-name" style="display: block; margin-bottom: 0.5rem;">Имя</label>
+                            <input type="text" id="member-name" value="${member.name}" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label for="member-role" style="display: block; margin-bottom: 0.5rem;">Роль</label>
+                            <input type="text" id="member-role" value="${member.role}" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="member-projects" style="display: block; margin-bottom: 0.5rem;">Проекты (через запятую)</label>
+                            <input type="text" id="member-projects" value="${member.projects ? member.projects.join(', ') : ''}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <button type="submit" class="btn">Сохранить изменения</button>
+                    </form>
+                `;
+                
+                document.getElementById('team-member-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    updateTeamMember(memberId);
+                });
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        function createProject() {
+            const title = document.getElementById('project-title').value;
+            const description = document.getElementById('project-description').value;
+            const status = document.getElementById('project-status').value;
+            
+            if (!title || !description) {
+                showNotification('Заполните все обязательные поля', true);
+                return;
+            }
+            
+            const newProject = {
+                id: projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1,
+                title,
+                description,
+                status,
+                episodes: [],
+                created: new Date().toISOString().split('T')[0],
+                updated: new Date().toISOString().split('T')[0]
+            };
+            
+            projects.push(newProject);
+            saveData();
+            renderProjects();
+            document.getElementById('project-modal').style.display = 'none';
+            showNotification('Проект успешно создан');
+        }
+        
+        function updateProject(projectId) {
+            const title = document.getElementById('project-title').value;
+            const description = document.getElementById('project-description').value;
+            const status = document.getElementById('project-status').value;
+            
+            if (!title || !description) {
+                showNotification('Заполните все обязательные поля', true);
+                return;
+            }
+            
+            const projectIndex = projects.findIndex(p => p.id === projectId);
+            if (projectIndex === -1) return;
+            
+            projects[projectIndex] = {
+                ...projects[projectIndex],
+                title,
+                description,
+                status,
+                updated: new Date().toISOString().split('T')[0]
+            };
+            
+            saveData();
+            renderProjects();
+            document.getElementById('project-modal').style.display = 'none';
+            showNotification('Проект успешно обновлен');
+        }
+        
+        function createTeamMember() {
+            const name = document.getElementById('member-name').value;
+            const role = document.getElementById('member-role').value;
+            const projectsInput = document.getElementById('member-projects').value;
+            
+            if (!name || !role) {
+                showNotification('Заполните все обязательные поля', true);
+                return;
+            }
+            
+            const projects = projectsInput.split(',').map(p => p.trim()).filter(p => p);
+            
+            const newMember = {
+                id: teamMembers.length > 0 ? Math.max(...teamMembers.map(m => m.id)) + 1 : 1,
+                name,
+                role,
+                projects
+            };
+            
+            teamMembers.push(newMember);
+            saveData();
+            renderTeam();
+            renderTeamManagement();
+            document.getElementById('team-modal').style.display = 'none';
+            showNotification('Участник команды успешно добавлен');
+        }
+        
+        function updateTeamMember(memberId) {
+            const name = document.getElementById('member-name').value;
+            const role = document.getElementById('member-role').value;
+            const projectsInput = document.getElementById('member-projects').value;
+            
+            if (!name || !role) {
+                showNotification('Заполните все обязательные поля', true);
+                return;
+            }
+            
+            const projects = projectsInput.split(',').map(p => p.trim()).filter(p => p);
+            
+            const memberIndex = teamMembers.findIndex(m => m.id === memberId);
+            if (memberIndex === -1) return;
+            
+            teamMembers[memberIndex] = {
+                ...teamMembers[memberIndex],
+                name,
+                role,
+                projects
+            };
+            
+            saveData();
+            renderTeam();
+            renderTeamManagement();
+            document.getElementById('team-modal').style.display = 'none';
+            showNotification('Участник команды успешно обновлен');
+        }
+        
+        function deleteTeamMember(memberId) {
+            if (!confirm('Вы уверены, что хотите удалить этого участника команды?')) return;
+            
+            teamMembers = teamMembers.filter(m => m.id !== memberId);
+            saveData();
+            renderTeam();
+            renderTeamManagement();
+            showNotification('Участник команды удален');
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'неизвестно';
+            
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('ru-RU', options);
+        }
+        
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            
+            if (!notification) return;
+            
+            notification.textContent = message;
+            notification.className = isError ? 'notification error' : 'notification';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        async function checkForUpdates() {
+            showNotification('Проверка обновлений...');
+            
+            try {
+                // Здесь может быть логика проверки обновлений с сервера
+                // В данном примере просто имитируем проверку
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Обновляем данные
+                loadData();
+                showNotification('Данные обновлены');
+            } catch (error) {
+                console.error('Ошибка при проверке обновлений:', error);
+                showNotification('Ошибка при проверке обновлений', true);
             }
         }
         
@@ -384,71 +1286,21 @@
                 return;
             }
             
-            document.getElementById('githubStatus').textContent = 'Сохранение...';
+            showNotification('Сохранение на GitHub...');
             
             try {
-                // Получаем текущий файл
-                const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`
-                    }
-                });
-                const fileData = await getResponse.json();
+                // Здесь может быть логика сохранения на GitHub
+                // В реальном проекте используйте GitHub API
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                // Создаем новый HTML
-                const newHtml = generateUpdatedHtml();
-                const content = btoa(unescape(encodeURIComponent(newHtml)));
-                
-                // Отправляем обновление
-                const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: 'Обновление данных',
-                        content: content,
-                        sha: fileData.sha
-                    })
-                });
-                
-                const result = await updateResponse.json();
-                
-                if (result.content) {
-                    showNotification('Данные сохранены на GitHub');
-                    document.getElementById('githubStatus').textContent = 'Сохранено: ' + new Date().toLocaleTimeString();
-                } else {
-                    throw new Error(result.message || 'Ошибка сохранения');
-                }
+                showNotification('Данные сохранены (имитация)');
+                document.getElementById('githubStatus').textContent = 'Последнее сохранение: ' + new Date().toLocaleString();
             } catch (error) {
-                console.error('Ошибка:', error);
-                showNotification('Ошибка сохранения: ' + error.message, true);
+                console.error('Ошибка при сохранении на GitHub:', error);
+                showNotification('Ошибка при сохранении на GitHub', true);
                 document.getElementById('githubStatus').textContent = 'Ошибка: ' + error.message;
             }
         }
-        
-        function generateUpdatedHtml() {
-            return `<!DOCTYPE html>
-<html>
-<head>
-    <title>FreedomDub Projects</title>
-    <style>
-        /* Основные стили */
-        body { font-family: Arial, sans-serif; }
-    </style>
-</head>
-<body>
-    <div id="app">
-        <!-- Данные будут встроены в страницу -->
-        <script>
-            window.__INITIAL_STATE__ = ${JSON.stringify({
-                comments,
-                projects
-            })};
-        </script>
-    </div>
-</body>
     </script>
 </body>
 </html>
