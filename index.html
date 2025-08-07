@@ -379,11 +379,46 @@
             .team-grid {
                 grid-template-columns: 1fr 1fr;
             }
+            
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .user-info {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        /* Стили для уведомлений */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            background: var(--success);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: var(--error);
         }
     </style>
 </head>
 <body>
     <div id="error-message" style="display: none; position: fixed; top: 0; left: 0; width: 100%; background: red; color: white; padding: 10px; text-align: center; z-index: 2000;"></div>
+    <div id="notification" class="notification"></div>
     
     <header>
         <div class="logo">FreedomDub</div>
@@ -396,6 +431,7 @@
         <h1>Проекты</h1>
         <button id="add-project-btn" class="btn btn-admin" style="display: none;">Добавить проект</button>
         <button id="manage-team-btn" class="btn btn-admin" style="display: none; margin-left: 0.5rem;">Управление командой</button>
+        <button id="sync-data-btn" class="btn" style="margin-left: 0.5rem;">Синхронизировать данные</button>
         
         <div class="projects-grid" id="projects-container">
             <!-- Проекты будут загружаться здесь -->
@@ -494,6 +530,18 @@
             document.getElementById('error-message').style.display = 'block';
         }
 
+        // Функция для показа уведомлений
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = isError ? 'notification error' : 'notification';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
         // Типы пользователей и их права
         const USER_ROLES = {
             GUEST: 'guest',
@@ -528,6 +576,7 @@
         // Сохранение пользователей
         function saveUsers() {
             localStorage.setItem('freedomdub-users', JSON.stringify(users));
+            showNotification('Пользователи сохранены!');
         }
 
         // Данные команды
@@ -543,6 +592,7 @@
         // Сохранение команды
         function saveTeam() {
             localStorage.setItem('freedomdub-team', JSON.stringify(teamMembers));
+            showNotification('Команда сохранена!');
         }
 
         // Имитация базы данных проектов
@@ -576,6 +626,31 @@
         // Сохранение проектов
         function saveProjects() {
             localStorage.setItem('freedomdub-projects', JSON.stringify(projects));
+            showNotification('Проекты сохранены!');
+        }
+
+        // Экспорт всех данных в один объект
+        function exportAllData() {
+            return {
+                users: users,
+                teamMembers: teamMembers,
+                projects: projects,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        // Импорт всех данных
+        function importAllData(data) {
+            if (data.users) users = data.users;
+            if (data.teamMembers) teamMembers = data.teamMembers;
+            if (data.projects) projects = data.projects;
+            
+            saveUsers();
+            saveTeam();
+            saveProjects();
+            updateUI();
+            
+            showNotification('Данные успешно импортированы!');
         }
 
         // Текущий пользователь
@@ -598,6 +673,7 @@
         const authBtn = document.getElementById('auth-btn');
         const addProjectBtn = document.getElementById('add-project-btn');
         const manageTeamBtn = document.getElementById('manage-team-btn');
+        const syncDataBtn = document.getElementById('sync-data-btn');
         const closeModalButtons = document.querySelectorAll('.close-modal');
         const currentYearSpan = document.getElementById('current-year');
         const authTabs = document.querySelectorAll('.auth-tab');
@@ -677,6 +753,7 @@
                     saveTeam();
                     renderTeam();
                     teamModal.style.display = 'none';
+                    showNotification('Участник команды удален!');
                 }
             });
             
@@ -693,6 +770,7 @@
                 saveTeam();
                 renderTeam();
                 teamModal.style.display = 'none';
+                showNotification('Данные участника сохранены!');
             });
             
             teamModal.style.display = 'flex';
@@ -809,18 +887,19 @@
                 localStorage.setItem('freedomdub-current-user', JSON.stringify(user));
                 updateUI();
                 authModal.style.display = 'none';
+                showNotification(`Добро пожаловать, ${user.name}!`);
                 return true;
             }
             
             // Не показываем данные аккаунта админа при ошибке
-            alert('Неверные email или пароль');
+            showNotification('Неверные email или пароль', true);
             return false;
         }
 
         // Регистрация нового пользователя (с ролью GUEST)
         function register(name, email, password) {
             if (users.some(u => u.email === email)) {
-                alert('Пользователь с таким email уже существует');
+                showNotification('Пользователь с таким email уже существует', true);
                 return false;
             }
             
@@ -840,7 +919,7 @@
             updateUI();
             authModal.style.display = 'none';
             
-            alert('Регистрация успешна! Ваш аккаунт ожидает подтверждения администратора.');
+            showNotification('Регистрация успешна! Ваш аккаунт ожидает подтверждения администратора.');
             return true;
         }
 
@@ -849,6 +928,7 @@
             currentUser = { role: USER_ROLES.GUEST };
             localStorage.removeItem('freedomdub-current-user');
             updateUI();
+            showNotification('Вы успешно вышли из системы!');
         }
 
         // Функция для рендеринга проектов
@@ -907,7 +987,7 @@
             document.querySelectorAll('[data-action="delete"]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (!checkPermission(USER_ROLES.ADMIN)) {
-                        alert('Только администраторы могут удалять проекты');
+                        showNotification('Только администраторы могут удалять проекты', true);
                         return;
                     }
                     
@@ -916,6 +996,7 @@
                         projects = projects.filter(p => p.id !== projectId);
                         saveProjects();
                         renderProjects();
+                        showNotification('Проект успешно удален!');
                     }
                 });
             });
@@ -986,7 +1067,7 @@
                 }
             } else if (mode === 'edit') {
                 if (!checkPermission(USER_ROLES.VIEWER)) {
-                    alert('Недостаточно прав для редактирования');
+                    showNotification('Недостаточно прав для редактирования', true);
                     return;
                 }
                 
@@ -1345,9 +1426,7 @@
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             
-            if (!login(email, password)) {
-                alert('Неверные учетные данные');
-            }
+            login(email, password);
         });
 
         // Обработчик формы регистрации
@@ -1359,7 +1438,7 @@
             const password = document.getElementById('register-password').value;
             
             if (password.length < 6) {
-                alert('Пароль должен содержать минимум 6 символов');
+                showNotification('Пароль должен содержать минимум 6 символов', true);
                 return;
             }
             
@@ -1391,10 +1470,50 @@
             projects.push(newProject);
             saveProjects();
             openProjectModal(newProjectId, 'edit');
+            showNotification('Новый проект создан!');
         });
 
         // Обработчик для управления командой
         manageTeamBtn.addEventListener('click', openTeamManagement);
+        
+        // Обработчик для синхронизации данных
+        syncDataBtn.addEventListener('click', () => {
+            const allData = exportAllData();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
+            
+            // Создаем ссылку для скачивания
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "freedomdub-data.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            
+            showNotification('Данные экспортированы в файл!');
+            
+            // Импорт данных
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json';
+            
+            fileInput.onchange = e => { 
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.readAsText(file, 'UTF-8');
+                
+                reader.onload = readerEvent => {
+                    const content = readerEvent.target.result;
+                    try {
+                        const data = JSON.parse(content);
+                        importAllData(data);
+                    } catch (err) {
+                        showNotification('Ошибка при чтении файла данных', true);
+                    }
+                }
+            }
+            
+            fileInput.click();
+        });
 
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
@@ -1404,7 +1523,25 @@
             authBtn.addEventListener('click', () => {
                 authModal.style.display = 'flex';
             });
+            
+            // Проверяем, есть ли данные для импорта из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                try {
+                    const data = JSON.parse(atob(dataParam));
+                    importAllData(data);
+                    showNotification('Данные успешно загружены из URL!');
+                    
+                    // Очищаем параметр URL
+                    const newUrl = window.location.href.split('?')[0];
+                    window.history.replaceState({}, document.title, newUrl);
+                } catch (e) {
+                    showNotification('Ошибка при загрузке данных из URL', true);
+                }
+            }
         });
     </script>
 </body>
-</html>
+    </html>
