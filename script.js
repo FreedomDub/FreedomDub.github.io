@@ -1,4 +1,3 @@
-
 // Конфигурация системы
 const GITHUB_REPO = 'FreedomDub/FreedomDub.github.io';
 const GITHUB_FILE = 'data.json';
@@ -1213,4 +1212,5 @@ window.approveVacancy = approveVacancy;
 window.rejectVacancy = rejectVacancy;
 window.openTeamMemberModal = openTeamMemberModal;
 window.deleteTeamMember = deleteTeamMember;
+
 window.saveToGitHub = saveToGitHub;
