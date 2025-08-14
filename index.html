@@ -6,7 +6,6 @@
     <title>FreedomDub - Система управления проектами и чат-бот</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Основные стили */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -73,7 +72,6 @@
             transform: translateY(-5px);
         }
         
-        /* Стили чат-бота */
         .chat-toggle {
             position: fixed;
             bottom: 2rem;
@@ -160,8 +158,6 @@
             border-radius: 4px;
             margin-right: 0.5rem;
         }
-        
-        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -197,9 +193,6 @@
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-        }
-        
-        /* Уведомления */
         .notification {
             position: fixed;
             top: 1rem;
@@ -217,8 +210,6 @@
         .notification.error {
             background-color: #e74c3c;
         }
-        
-        /* Дополнительные стили */
         .user-badge {
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
@@ -259,8 +250,6 @@
             background-color: #f39c12;
             color: white;
         }
-        
-        /* Стили для команды */
         .team-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -286,7 +275,6 @@
             font-size: 1rem;
         }
         
-        /* Формы */
         form {
             padding: 1rem;
         }
@@ -315,7 +303,7 @@
             resize: vertical;
         }
         
-        /* Админ панель */
+ 
         .admin-panel {
             background: white;
             padding: 1rem;
@@ -324,7 +312,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
-        /* Футер */
         footer {
             text-align: center;
             padding: 1.5rem;
@@ -332,13 +319,21 @@
             background-color: #2c3e50;
             color: white;
         }
+        
+        .contacts {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
     <div id="notification" class="notification"></div>
     
     <header>
-        <div class="logo">FreedomDub</div>
+        <div class="logo">FreedomDub Studio</div>
         <div id="user-menu">
             <button id="auth-btn" class="btn btn-secondary">Вход / Регистрация</button>
         </div>
@@ -365,18 +360,22 @@
         <button id="sync-data-btn" class="btn" style="margin-left: 0.5rem;">Синхронизировать данные</button>
         
         <div class="projects-grid" id="projects-container">
-            <!-- Проекты будут загружаться здесь -->
+
         </div>
         
         <div class="team-section">
             <h2>Наша команда</h2>
             <div class="team-grid" id="team-container">
-                <!-- Команда будет загружаться здесь -->
             </div>
+        </div>
+        
+        <div class="contacts">
+            <h2>Контакты</h2>
+            <p>Для связи обращайтесь в личные сообщения:</p>
+            <p>Telegram: @dieformettall, @rarumkameow</p>
         </div>
     </div>
     
-    <!-- Чат-бот -->
     <div class="chat-toggle" id="chat-toggle">
         <i class="fas fa-comment-dots"></i>
     </div>
@@ -411,7 +410,6 @@
         </div>
     </div>
     
-    <!-- Модальные окна -->
     <div class="modal" id="project-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -419,7 +417,6 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div id="project-modal-content">
-                <!-- Контент будет загружаться здесь -->
             </div>
         </div>
     </div>
@@ -431,7 +428,6 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div id="team-modal-content">
-                <!-- Контент будет загружаться здесь -->
             </div>
         </div>
     </div>
@@ -487,28 +483,22 @@
     </footer>
     
     <script>
-        // Конфигурация системы
-        const GITHUB_REPO = 'FreedomDub/FreedomDub.github.io'; // Замените на свой репозиторий
+        const GITHUB_REPO = 'FreedomDub/FreedomDub.github.io';
         const GITHUB_FILE = 'data.json';
-        const ADMIN_PASSWORD = '22102020Freedom'; // Замените на свой пароль
+        const ADMIN_PASSWORD = '22102020Freedom';
         
-        // Токен GitHub (НИКОГДА не храните токен в клиентском коде в реальном приложении!)
-        // В реальном проекте используйте серверную часть для хранения токена
         const GITHUB_TOKEN = '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';
         
-        // Контакты администраторов
         const ADMIN_TG_LINK = '@dieformettall';
         const BACKUP_ADMIN_TG = '@rarumkameow';
         const BOT_NAME = 'FreedomDub Бот';
 
-        // Роли пользователей
         const USER_ROLES = {
             GUEST: 'guest',
             VIEWER: 'viewer',
             ADMIN: 'admin'
         };
 
-        // Состояние приложения
         let appData = {
             users: [
                 { 
@@ -520,28 +510,84 @@
                 }
             ],
             teamMembers: [
-                { id: 1, name: 'Gts Lilili', role: 'Администратор', projects: ['Все проекты'] },
-                { id: 2, name: 'Raruma', role: 'Администратор', projects: ['Все проекты'] },
-                { id: 3, name: 'Darina_waifu', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
-                { id: 4, name: 'Олег Трансформатор', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
-                { id: 5, name: 'Aina', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
-                { id: 6, name: 'Miomi', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
-                { id: 7, name: 'Magoriya', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски', 'Мой отец-герой, моя мать-дух, а я перерожденная их дочерью'] },
-                { id: 8, name: 'Plumule04', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
-                { id: 9, name: 'Lopata', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] }
+    
+                { id: 1, name: 'Gts Lilili', role: 'Владелец/Администратор', projects: ['Все проекты'] },
+                { id: 2, name: 'Gts Lilili', role: 'Актриса озвучки', projects: ['Все проекты'] },
+                { id: 3, name: 'Gts Lilili', role: 'Редактор', projects: ['Все проекты'] },
+                { id: 4, name: 'Gts Lilili', role: 'Создатель сайта', projects: ['Все проекты'] },
+                { id: 5, name: 'Raruma', role: 'Владелец/Администратор', projects: ['Все проекты'] },
+                { id: 6, name: 'Raruma', role: 'Актриса озвучки', projects: ['Все проекты'] },
+                { id: 7, name: 'Raruma', role: 'Менеджер ТГК, ТТ', projects: ['Все проекты'] },
+                
+                // Актрисы озвучки
+                { id: 8, name: 'Darina_waifu', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 9, name: 'Олег Трансформатор', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 10, name: 'Aina', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 11, name: 'Miomi', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 12, name: 'Magoriya', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски', 'Мой отец-герой, моя мать-дух, а я перерожденная их дочерью'] },
+                { id: 13, name: 'Plumule04', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 14, name: 'Lopata', role: 'Актриса озвучки', projects: ['Аля иногда кокетничает со мной по-русски', 'Мой отец-герой, моя мать-дух, а я перерожденная их дочерью', 'Внимание! Among Us! Зов Космической Бездны Ждет!'] },
+                { id: 15, name: 'Sariooll', role: 'Актриса озвучки', projects: [] },
+                
+                // Актёры озвучки
+                { id: 16, name: 'G-zelen', role: 'Актёр озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 17, name: 'Самолёт', role: 'Актёр озвучки', projects: ['Безэмоциональная Касивада и эмоциональный Ота'] },
+                { id: 18, name: 'WHYDORRA', role: 'Актёр озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 19, name: 'Kazanok_Voice', role: 'Актёр озвучки', projects: ['Безэмоциональная Касивада и эмоциональный Ота'] },
+                { id: 20, name: 'Maduzooo', role: 'Актёр озвучки', projects: ['Безэмоциональная Касивада и эмоциональный Ота'] },
+                { id: 21, name: 'Neo', role: 'Актёр озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 22, name: 'Michaela', role: 'Актёр озвучки', projects: ['Аля иногда кокетничает со мной по-русски'] },
+                { id: 23, name: 'Пивко', role: 'Актёр озвучки', projects: ['Внимание! Among Us! Зов Космической Бездны Ждет!'] },
+                
+                // Переводчики
+                { id: 24, name: 'Ангел', role: 'Переводчик', projects: ['Безэмоциональная Касивада и эмоциональный Ота', 'Аля иногда кокетничает со мной по-русски', 'Внимание! Among Us! Зов Космической Бездны Ждет!', 'Мой отец-герой, моя мать-дух, а я перерожденная их дочерью'] },
+                { id: 25, name: 'Nero', role: 'Переводчик', projects: ['Все проекты'] },
+                
+                // Редакторы
+                { id: 26, name: 'Gts Lilili', role: 'Редактор', projects: ['Все проекты'] },
+                
+                // Звукари
+                { id: 27, name: 'Blitsoo', role: 'Звукарь', projects: ['Все проекты'] },
+                
+                // Монтажеры
+                { id: 28, name: 'Zynx', role: 'Монтажер', projects: ['Все проекты'] },
+                { id: 29, name: 'Бандура', role: 'Монтажер', projects: ['Все проекты'] },
+                
+                // Менеджеры
+                { id: 30, name: 'Raruma', role: 'Менеджер ТГК, ТТ', projects: ['Все проекты'] },
+                { id: 31, name: 'Gts Lilili', role: 'Менеджер ТГК, ТТ', projects: ['Все проекты'] },
+                
+                // Создатели сайта
+                { id: 32, name: 'Gts Lilili', role: 'Создатель сайта', projects: ['Все проекты'] }
             ],
             projects: [
                 {
                     id: 1,
-                    title: "Проект 1",
-                    description: "Описание проекта 1",
+                    title: "Безэмоциональная Касивада и эмоциональный Ота,
+                        description: "АнимеБезэмоциональная Касивада и эмоциональный Ота Жанр:Комедия, повседневность, школа, психология  Сюжет:Это история о двух полных противоположностях — холодной и безэмоциональной Касиваде и чрезмерно эмоциональном Оте. Они — одноклассники, чьй странный дуэт привлекает внимание окружающих. Касивада почти никогда не проявляет чувств, говорит монотонно и равнодушно относится к происходящему, в то время как Ота бурно реагирует на каждую мелочь, будь то радость, гнев или отчаяние.  Несмотря на разницу в характерах, их необычная дружба (или что-то большее?) развивается через смешные и порой абсурдные ситуации. Ота постоянно пытается "расшевелить" Касиваду, а она, в свою очередь, своим спокойствием лишь сильнее выводит его из себя.  Особенности:   Контрастная динамика между главными героями   Лёгкий юмор и тёплые моменты  Исследование тем эмоций и человеческих отношений  Для кого: Поклонникам комедийных аниме с необычными персонажами, вроде "Торадора"или *"Хоримия"*, но с ещё более гротескной разницей в характерах. Это аниме — о том, как даже самые разные люди могут находить общий язык, пусть и очень странным способом.",
                     episodes: [],
                     status: "в работе",
                     created: new Date().toISOString().split('T')[0],
                     updated: new Date().toISOString().split('T')[0]
                 }
-            ],
-            pendingVacancies: [],
+                {
+                id: 2,
+                    title: "Мой отец герой, моя мать дух, а я перерожденная их дочерью " 
+                    description: "В эпоху, когда демоны угрожают человечеству, рождается легенда о герое и могущественной жрице. Их любовь – это не просто связь двух сердец, а союз, скрепленный долгом защиты мира. Но судьба жестока, и они погибают, оставив мир в трауре. Спустя годы, их дочь перерождается, унаследовав их силу и память.Новая жизнь, новые испытания, и старый враг, который жаждет мести. Ей предстоит раскрыть тайны своего прошлого, овладеть унаследованными способностями и стать еще сильнее, чем ее родители. В этом путешествии она встретит верных друзей и столкнется с предательством, найдет любовь и познает горечь утраты. Сможет ли она превзойти своих родителей и защитить мир от надвигающейся тьмы? Это история о перерождении, наследии и борьбе за будущее, полная магии, сражений и глубоких эмоциональных переживаний."
+                     epusodes: [],
+                         status: "в работе",
+                         created: new Date().toISOString().split('T')[0],
+                    updated: new Date().toISOString().split('T')[0]
+        }
+        {
+            id: 3,
+                title: "Внимание! Among Us! Зов Космической Бездны Ждет!"
+                description: "Среди звезд, на борту космического корабля, разворачивается смертельная игра в "кошки-мышки". Экипаж, казалось бы, обычные астронавты, но среди них скрывается безжалостный предатель, задача которого - уничтожить всех. Никто не знает, кто есть кто, паранойя и подозрения пропитывают каждый отсек корабля.Каждый эпизод - это новая головоломка, где зритель пытается разгадать, кто же этот коварный самозванец. Жертвы множатся, улики накапливаются, а напряжение растет с каждой минутой. Предатель искусно маскируется, саботирует системы корабля и сеет хаос, оставаясь незамеченным.Смогут ли оставшиеся в живых вычислить предателя до того, как он уничтожит их всех? Или зловещий план самозванца увенчается успехом, и космический корабль станет его безмолвной гробницей? Этот мультсериал - захватывающий детектив, полный интриг, предательств и неожиданных поворотов, который держит в напряжении до самого финала."
+            epusodes: [],
+                         status: "в работе",
+                         created: new Date().toISOString().split('T')[0],
+                    updated: new Date().toISOString().split('T')[0]}
+                     pendingVacancies: [],
             chatHistory: [],
             lastUpdate: Date.now()
         };
@@ -550,25 +596,20 @@
         let currentUser = { name: 'Гость', role: USER_ROLES.GUEST };
         let lastUpdateTime = 0;
         let chatAdminMode = false;
-
-        // Инициализация приложения
         document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('current-year').textContent = new Date().getFullYear();
             
-            // Загружаем данные
             loadFromLocalStorage();
             await loadFromGitHub();
             
-            // Инициализация интерфейса
+  
             initUI();
             setupEventListeners();
             initChatBot();
             
-            // Периодическая проверка обновлений
+ 
             setInterval(checkForUpdates, 30000);
         });
-
-        // ========== Функции работы с GitHub API ==========
         async function loadFromGitHub() {
             try {
                 showNotification('Загрузка данных с GitHub...');
@@ -622,8 +663,7 @@
                 showNotification('Сохранение на GitHub...');
                 
                 appData.lastUpdate = Date.now();
-                
-                // Получаем текущий SHA файла (если он существует)
+               
                 let sha = null;
                 try {
                     const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
@@ -668,8 +708,6 @@
                 document.getElementById('githubStatus').textContent = 'Ошибка: ' + error.message;
             }
         }
-
-        // ========== Функции работы с локальным хранилищем ==========
         function loadFromLocalStorage() {
             const savedData = localStorage.getItem('freedomdub-data');
             if (savedData) {
@@ -693,7 +731,6 @@
             localStorage.setItem('freedomdub-current-user', JSON.stringify(currentUser));
         }
 
-        // ========== Основные функции системы ==========
         function initUI() {
             updateUI();
             
@@ -805,8 +842,6 @@
             
             return roleHierarchy[currentUser.role] >= roleHierarchy[requiredRole];
         }
-
-        // ========== Функции работы с проектами ==========
         function renderProjects() {
             const projectsContainer = document.getElementById('projects-container');
             if (!projectsContainer) return;
@@ -973,7 +1008,6 @@
                 return;
             }
             
-            // В реальном приложении видео бы загружалось на сервер
             const videoUrl = videoFile ? URL.createObjectURL(videoFile) : null;
             
             const newProject = {
@@ -992,8 +1026,7 @@
             renderProjects();
             document.getElementById('project-modal').style.display = 'none';
             showNotification('Проект успешно создан');
-            
-            // Автоматическое сохранение на GitHub
+           
             saveToGitHub();
         }
 
@@ -1010,8 +1043,7 @@
             
             const projectIndex = appData.projects.findIndex(p => p.id === projectId);
             if (projectIndex === -1) return;
-            
-            // Сохраняем старое видео, если новое не загружено
+           
             const oldVideoUrl = appData.projects[projectIndex].videoUrl;
             const videoUrl = videoFile ? URL.createObjectURL(videoFile) : oldVideoUrl;
             
@@ -1027,13 +1059,9 @@
             saveToLocalStorage();
             renderProjects();
             document.getElementById('project-modal').style.display = 'none';
-            showNotification('Проект успешно обновлен');
-            
-            // Автоматическое сохранение на GitHub
+            showNotification('Проект успешно')
             saveToGitHub();
         }
-
-        // ========== Функции работы с командой ==========
         function renderTeam() {
             const teamContainer = document.getElementById('team-container');
             if (!teamContainer) return;
@@ -1092,7 +1120,6 @@
             if (!modal || !modalContent) return;
             
             if (memberId === null) {
-                // Создание нового участника
                 modalContent.innerHTML = `
                     <h3>Добавить участника команды</h3>
                     <form id="team-member-form">
@@ -1116,8 +1143,7 @@
                     e.preventDefault();
                     createTeamMember();
                 });
-            } else {
-                // Редактирование существующего участника
+            } else 
                 const member = appData.teamMembers.find(m => m.id === memberId);
                 if (!member) return;
                 
@@ -1173,9 +1199,7 @@
             renderTeam();
             renderTeamManagement();
             document.getElementById('team-modal').style.display = 'none';
-            showNotification('Участник команды успешно добавлен');
-            
-            // Автоматическое сохранение на GitHub
+            showNotification('Участник команды успешно добавлен')
             saveToGitHub();
         }
 
@@ -1206,8 +1230,7 @@
             renderTeamManagement();
             document.getElementById('team-modal').style.display = 'none';
             showNotification('Участник команды успешно обновлен');
-            
-            // Автоматическое сохранение на GitHub
+        
             saveToGitHub();
         }
 
@@ -1219,12 +1242,9 @@
             renderTeam();
             renderTeamManagement();
             showNotification('Участник команды удален');
-            
-            // Автоматическое сохранение на GitHub
+        
             saveToGitHub();
         }
-
-        // ========== Функции авторизации ==========
         function login() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
@@ -1335,7 +1355,6 @@
             showNotification('Вы вышли из административного режима');
         }
 
-        // ========== Функции чат-бота ==========
         function initChatBot() {
             const chatToggle = document.getElementById('chat-toggle');
             const chatContainer = document.getElementById('chat-container');
@@ -1553,7 +1572,6 @@
                 saveVacancyToStorage(vacancy);
             }
             
-            // Автоматическое сохранение на GitHub
             saveToGitHub();
         }
 
@@ -1607,7 +1625,6 @@
             
             updateVacancyInStorage(vacancyId, 'approved');
             
-            // Автоматическое сохранение на GitHub
             saveToGitHub();
         }
 
@@ -1625,7 +1642,6 @@
             
             updateVacancyInStorage(vacancyId, 'rejected');
             
-            // Автоматическое сохранение на GitHub
             saveToGitHub();
         }
 
@@ -1671,11 +1687,7 @@
             const vacancyIndex = appData.pendingVacancies.findIndex(v => v.id === vacancyId);
             if (vacancyIndex !== -1) {
                 appData.pendingVacancies[vacancyIndex].status = status;
-                saveToLocalStorage();
-            }
-        }
-
-        // ========== Вспомогательные функции ==========
+                saveToL
         function formatDate(dateString) {
             if (!dateString) return 'неизвестно';
             
@@ -1709,7 +1721,6 @@
             }
         }
 
-        // Глобальные функции
         window.approveVacancy = approveVacancy;
         window.rejectVacancy = rejectVacancy;
         window.openTeamMemberModal = openTeamMemberModal;
@@ -1718,4 +1729,3 @@
     </script>
 </body>
 </html>
-
